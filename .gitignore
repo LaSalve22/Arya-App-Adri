@@ -1,0 +1,29 @@
+# Secrets : jamais dans Git
+.env
+*.env
+!.env.example
+
+# Base de données et sauvegardes
+*.db
+*.sqlite
+*.sqlite3
+backups/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+
+# MT4 : fichiers compilés et journaux
+*.ex4
+*.log
+
+# Données locales de test
+tools/_fake_common/
+
+# Systèmes
+.DS_Store
+Thumbs.db
+desktop.ini

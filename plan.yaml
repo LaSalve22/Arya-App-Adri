@@ -1,0 +1,34 @@
+# Plan de trading Douglas M5 — lu par le backend, jamais en dur dans le code.
+# Toute modification se fait ici, hors créneau uniquement.
+
+timezone: Europe/Paris
+
+# Noms standard des actifs. La correspondance avec les noms du broker
+# (ex. GER40 -> GER40.cash) se règle dans l'EA gardien, paramètre SymbolMap.
+symbols: [XAUUSD, GER40, US100]
+
+# Magic numbers d'ARYA (pour distinguer ses trades des trades manuels)
+arya_magic_numbers:
+  42: Arya Pro +
+  88: Arya Centurion
+
+sessions:
+  mon-thu: ["09:15-12:15", "15:45-18:15"]
+  fri: ["09:15-12:15"]
+
+risk_per_trade_pct: 0.5
+friday_risk_factor: 0.5
+daily_target_pct: 0.5
+daily_max_loss_pct: 0.5
+
+filter:
+  ma_period: 100
+  ma_timeframe: M5
+
+anti_tilt:
+  consecutive_losses: 2
+  impulsive_lock_minutes: 30
+
+news_lock: full_day
+news_events: [NFP, CPI, FOMC]
+session_end: no_new_entries
