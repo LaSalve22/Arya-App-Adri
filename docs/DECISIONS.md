@@ -20,3 +20,9 @@ Chaque choix technique validé par Adrien est noté ici, avec sa date.
 - L'EA ne voit que l'historique chargé dans l'onglet « Historique du compte » de MT4 : à régler sur « Tout l'historique ».
 - `OnTimer` doit continuer de tourner le week-end et quand le broker est déconnecté (battement de cœur à vérifier).
 - Règles prop firm : vérifier auprès de FTMO (et FundedNext pour le réel) qu'un EA gardien avec DLL est autorisé — concerne l'étape 5.
+
+## 20/11/2026 — Changement de priorité
+
+- Le **radar d'opportunités** passe en premier (brief `docs/radar-brief.md` du dépôt `LaSalve22/Arya-Monte-Carlo`).
+  Il est développé dans Arya-Monte-Carlo (`douglas/radar/`, commande `douglas radar`), branche `claude/sharp-clarke-pzvun9`.
+- L'EA gardien, le backend et l'appli de ce dépôt sont **en pause** (SPEC.md conservé ; étape 1 faite, étape 2 non commencée).
