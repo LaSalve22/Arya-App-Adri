@@ -20,8 +20,8 @@ interface FeatureBAN {
 
 export async function geocoder(q: string, limite = 6): Promise<Adresse[]> {
   if (q.trim().length < 3) return [];
-  // On oriente la recherche vers l'Occitanie (centre approximatif) puis on filtre strictement.
-  const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(q)}&limit=${limite * 3}&lat=43.7&lon=2.3`;
+  // On demande large puis on ne garde que les adresses d'Occitanie.
+  const url = `https://data.geopf.fr/geocodage/search?q=${encodeURIComponent(q)}&limit=${Math.max(15, limite * 3)}`;
   const d = await getJSON<{ features: FeatureBAN[] }>(url, "Base Adresse Nationale", 86400_000);
   return d.features
     .map((f) => ({

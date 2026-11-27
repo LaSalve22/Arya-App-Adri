@@ -16,12 +16,12 @@ export async function risques(lon: number, lat: number): Promise<Risques> {
       "Géorisques",
       86400_000,
     ),
-    getJSON<{ data: { exposition: string }[] }>(`https://georisques.gouv.fr/api/v1/rga?latlon=${lon},${lat}`, "Géorisques", 86400_000),
+    getJSON<{ exposition?: string }>(`https://georisques.gouv.fr/api/v1/rga?latlon=${lon},${lat}`, "Géorisques", 86400_000),
   ]);
   const d = g.status === "fulfilled" ? g.value.data[0] : undefined;
   // On garde les risques « parents » (codes à 2 chiffres) pour une liste lisible.
   const liste = d?.risques_detail.filter((r) => r.num_risque.length <= 2).map((r) => r.libelle_risque_long) ?? [];
-  const argiles = a.status === "fulfilled" ? a.value.data?.[0]?.exposition ?? null : null;
+  const argiles = a.status === "fulfilled" ? a.value.exposition ?? null : null;
   return { commune: d?.libelle_commune ?? null, risques: liste, argiles, lienRapport };
 }
 

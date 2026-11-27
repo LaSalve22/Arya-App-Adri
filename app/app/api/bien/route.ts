@@ -1,4 +1,4 @@
-import { centreParcelle, construireIdu, parcelleAuPoint, parcelleParIdu } from "@/lib/sources/cadastre";
+import { centreParcelle, parcelleAuPoint, parcelleParIdu, parcelleParReference } from "@/lib/sources/cadastre";
 import { zonePLU } from "@/lib/sources/urbanisme";
 import { dpeProches, risques } from "@/lib/sources/risques";
 import { estEnOccitanie } from "@/lib/sources/occitanie";
@@ -9,13 +9,16 @@ export async function GET(req: Request) {
   const p = new URL(req.url).searchParams;
   let lon = nombre(p.get("lon"));
   let lat = nombre(p.get("lat"));
-  let idu = p.get("idu");
-  if (!idu && p.get("insee") && p.get("section") && p.get("numero")) idu = construireIdu(p.get("insee")!, p.get("section")!, p.get("numero")!);
+  const idu = p.get("idu");
+  const ref = p.get("insee") && p.get("section") && p.get("numero") ? ([p.get("insee")!, p.get("section")!, p.get("numero")!] as const) : null;
+  const parRef = !!(idu || ref);
 
-  const parcelle = await tenter(() => (idu ? parcelleParIdu(idu) : lon != null && lat != null ? parcelleAuPoint(lon, lat) : Promise.resolve(null)));
-  if (idu) {
+  const parcelle = await tenter(() =>
+    idu ? parcelleParIdu(idu) : ref ? parcelleParReference(...ref) : lon != null && lat != null ? parcelleAuPoint(lon, lat) : Promise.resolve(null),
+  );
+  if (parRef) {
     if (!parcelle.ok) return erreur(parcelle.erreur, 502);
-    if (!parcelle.data) return erreur(`Parcelle ${idu} introuvable au cadastre.`, 404);
+    if (!parcelle.data) return erreur(`Parcelle ${idu ?? ref!.slice(1).join(" ")} introuvable au cadastre.`, 404);
     ({ lon, lat } = centreParcelle(parcelle.data));
   }
   if (lon == null || lat == null) return erreur("Indiquez une adresse ou une parcelle.");
