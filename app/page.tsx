@@ -195,7 +195,7 @@ function ParAnnonce() {
   const a = res?.annonce;
   return (
     <div className="pile">
-      <textarea value={texte} onChange={(e) => setTexte(e.target.value)} placeholder="Collez ici le texte d'une annonce (Leboncoin, SeLoger, agence…)" />
+      <textarea value={texte} onChange={(e) => setTexte(e.target.value)} placeholder="Collez ici le TEXTE de l'annonce (titre, prix, lieu, critères, description), pas le lien. Leboncoin, SeLoger, agence…" />
       <div className="ligne">
         <button className="btn principal" onClick={analyser} disabled={!texte.trim() || charge}>{charge ? "Analyse…" : "Analyser l'annonce"}</button>
         <span className="doux petit">Lecture automatique simple : vérifiez les valeurs. L'agent IA prendra le relais plus tard.</span>

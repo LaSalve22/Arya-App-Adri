@@ -16,4 +16,12 @@ describe("analyse d'annonce", () => {
     const a = analyserAnnonce("Immeuble de rapport 4 lots, surface habitable 210 m², 66000 Perpignan, 420 000 euros");
     expect(a).toMatchObject({ type: "Immeuble", prix: 420000, surface: 210, codePostal: "66000" });
   });
+  it("format Leboncoin copié depuis l'appli", () => {
+    const a = analyserAnnonce("Appartement 3 pièces 69 m²\n120 000 €\nNarbonne 11100\nCritères\nType de bien\nAppartement\nSurface habitable\n69 m²\nNombre de pièces\n3\nClasse énergie\nD\nGES\nE");
+    expect(a).toMatchObject({ type: "Appartement", prix: 120000, surface: 69, pieces: 3, dpe: "D", codePostal: "11100", ville: "Narbonne" });
+  });
+  it("ville composée avant le code postal", () => {
+    const a = analyserAnnonce("Maison 5 pièces 120 m²\n249 000 €\nLézignan-Corbières 11200\nSurface du terrain\n800 m²\nClasse énergieF");
+    expect(a).toMatchObject({ prix: 249000, surface: 120, terrain: 800, codePostal: "11200", ville: "Lézignan-Corbières", dpe: "F" });
+  });
 });
