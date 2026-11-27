@@ -5,17 +5,10 @@ import { prixMaxPourMarge, sensibilite } from "@/lib/bilan/nego";
 import { LIBELLES_POSTES } from "@/lib/bilan/defaut";
 import type { Hypotheses, Lot, PosteTravaux, RegimeTVA, ScenarioRevente } from "@/lib/bilan/types";
 import type { Offre } from "@/lib/projets";
-import ComparatifRP from "./ComparatifRP";
-import type { OptionsRP } from "@/lib/bilan/residence";
+import type { EtatAnalyse } from "@/lib/etat";
 import { classeMarge, dateFr, eur, m2, pct } from "@/lib/format";
 
-export interface EtatBilan {
-  hypotheses: Hypotheses;
-  prixAffiche: number;
-  margeCible: number;
-  historique: Offre[];
-  rp: OptionsRP;
-}
+export type EtatBilan = EtatAnalyse;
 
 const TAUX_TVA = [0.2, 0.1, 0.055];
 const SCENARIOS: [ScenarioRevente, string][] = [["down", "Bas"], ["moyen", "Moyen"], ["top", "Haut"]];
@@ -167,8 +160,6 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
           </div>
         </div>
 
-        <ComparatifRP h={h} rp={etat.rp} setRp={(rp) => setEtat({ ...etat, rp })} />
-
         {/* ---------------- ACHAT ---------------- */}
         <details className="bloc" open>
           <summary><span>Achat et charge foncière</span><span className="num">{eur(r.foncier.total.ttc)}</span></summary>
@@ -245,29 +236,6 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
               </table>
             </div>
             {r.bascule.immeubleNeuf && <p className="alerte">Bascule en « immeuble neuf » ({r.bascule.raison}) : la TVA s'applique sur le prix de vente total.</p>}
-          </div>
-        </details>
-
-        {/* ---------------- FRAIS ---------------- */}
-        <details className="bloc">
-          <summary><span>Honoraires et frais divers</span><span className="num">{eur(r.honorairesDivers.ttc + r.fraisDivers.total + r.honorairesVente.ttc)}</span></summary>
-          <div>
-            <table className="t">
-              <tbody>
-                <Ligne libelle="Honoraires de gestion (TTC)"><Num v={h.honorairesGestion} set={(n) => maj({ honorairesGestion: n })} /></Ligne>
-                <Ligne libelle="Frais de comptabilité (TTC)"><Num v={h.fraisComptabilite} set={(n) => maj({ fraisComptabilite: n })} /></Ligne>
-                <Ligne libelle="Frais de justice : huissier, avocat (TTC)"><Num v={h.fraisJustice} set={(n) => maj({ fraisJustice: n })} /></Ligne>
-                <Ligne libelle="Montant emprunté"><Num v={h.financement.montantEmprunte} set={(n) => maj({ financement: { ...h.financement, montantEmprunte: n } })} /></Ligne>
-                <Ligne libelle="Taux annuel"><Num v={Math.round(h.financement.tauxAnnuel * 10000) / 100} pas={0.1} suffixe="%" largeur={80} set={(n) => maj({ financement: { ...h.financement, tauxAnnuel: n / 100 } })} /></Ligne>
-                <Ligne libelle="Durée de l'opération"><Num v={h.financement.dureeMois} pas={1} suffixe="mois" largeur={80} set={(n) => maj({ financement: { ...h.financement, dureeMois: n } })} /></Ligne>
-                <Ligne libelle="Frais de dossier et garantie"><Num v={h.financement.fraisDossier} set={(n) => maj({ financement: { ...h.financement, fraisDossier: n } })} /></Ligne>
-                <Ligne libelle="Frais financiers" aide="Emprunt × taux × durée + frais de dossier">{eur(r.fraisDivers.financiers)}</Ligne>
-                <Ligne libelle="GFA si VEFR" aide="≈ 1 % des travaux"><Num v={h.gfa} set={(n) => maj({ gfa: n })} /></Ligne>
-                <Ligne libelle="Assurance dommages-ouvrage" aide="≈ 2 % des travaux"><Num v={h.assuranceDO} set={(n) => maj({ assuranceDO: n })} /></Ligne>
-                <Ligne libelle="Honoraires de vente (TTC)"><Num v={h.honorairesVente} set={(n) => maj({ honorairesVente: n })} /></Ligne>
-                <Ligne libelle="Apport en fonds propres" aide="Pour le rendement des fonds propres"><Num v={h.apport} set={(n) => maj({ apport: n })} /></Ligne>
-              </tbody>
-            </table>
           </div>
         </details>
 

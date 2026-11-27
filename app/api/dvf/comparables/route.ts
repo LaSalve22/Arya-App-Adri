@@ -20,6 +20,7 @@ export async function GET(req: Request) {
       surface: nombre(p.get("surface")) ?? undefined,
       toleranceSurface: nombre(p.get("tolerance")) ?? undefined,
       rayonM: nombre(p.get("rayon")) ?? undefined,
+      minResultats: nombre(p.get("min")) ?? undefined,
     }),
   );
 }
