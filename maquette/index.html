@@ -1,0 +1,692 @@
+<title>MADRIMMO</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+/* Layout : une colonne de présentation + un téléphone cliquable. Identité : bleu nuit « plan d'architecte » + laiton. Thème sombre assumé. */
+:root {
+  --page: #0A1019;
+  --ink: #0F1724;
+  --panel: #172234;
+  --panel-2: #1D2A3F;
+  --line: #2A3A52;
+  --text: #E9EEF5;
+  --muted: #8E9CB1;
+  --brass: #E2AA55;
+  --brass-soft: rgba(226,170,85,.14);
+  --ok: #72C39E;
+  --ok-soft: rgba(114,195,158,.14);
+  --risk: #E5816A;
+  --risk-soft: rgba(229,129,106,.14);
+  --blue: #7FA8E0;
+  --map-bg: #E8E5DC;
+  --map-line: #9A9486;
+  --map-bati: #B9B3A5;
+  --f-display: "Archivo", "Helvetica Neue", Arial, sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", ui-monospace, Menlo, Consolas, monospace;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--page);
+  color: var(--text);
+  font-family: var(--f-body);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 24px;
+  background-image:
+    linear-gradient(rgba(127,168,224,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(127,168,224,.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+button { font: inherit; color: inherit; cursor: pointer; }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--brass); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+.mono { font-family: var(--f-mono); }
+
+/* ---------- Page ---------- */
+.stage {
+  max-width: 1040px; margin: 0 auto;
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 56px; align-items: center;
+}
+.intro { min-width: 0; max-width: 460px; }
+.brand { display: flex; align-items: center; gap: 12px; }
+.brand-mark { width: 44px; height: 44px; }
+.brand-name { font-family: var(--f-display); font-weight: 800; font-size: 30px; letter-spacing: .06em; }
+.brand-name span { color: var(--brass); }
+.tag { font-size: 11px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.intro h1 { font-family: var(--f-display); font-weight: 700; font-size: 34px; line-height: 1.12; margin: 28px 0 14px; text-wrap: balance; }
+.intro p { color: var(--muted); line-height: 1.6; margin: 0 0 24px; }
+.jump { display: grid; gap: 8px; }
+.jump button {
+  display: flex; align-items: center; gap: 12px; text-align: left;
+  background: transparent; border: 1px solid var(--line); border-radius: 10px; padding: 12px 14px;
+  transition: border-color .15s, background .15s;
+}
+.jump button:hover { border-color: var(--brass); background: var(--brass-soft); }
+.jump button[aria-current="true"] { border-color: var(--brass); background: var(--brass-soft); }
+.jump b { font-family: var(--f-display); font-weight: 600; font-size: 15px; }
+.jump small { display: block; color: var(--muted); font-size: 12px; margin-top: 2px; }
+.jump .k { font-family: var(--f-mono); font-size: 11px; color: var(--brass); width: 22px; flex: none; }
+.note { margin-top: 20px; font-size: 12px; color: var(--muted); display: flex; gap: 8px; align-items: center; }
+.note i { width: 8px; height: 8px; border-radius: 50%; background: var(--brass); flex: none; }
+
+/* ---------- Téléphone ---------- */
+.phone {
+  width: 390px; max-width: 100%;
+  height: min(820px, calc(100dvh - 48px)); min-height: 640px;
+  background: var(--ink);
+  border: 10px solid #1B2332; border-radius: 48px;
+  box-shadow: 0 0 0 1px #3A465A, 0 40px 80px -20px rgba(0,0,0,.7), 0 0 120px -30px rgba(226,170,85,.25);
+  position: relative; overflow: hidden; display: flex; flex-direction: column;
+}
+.status { height: 44px; flex: none; display: flex; align-items: center; justify-content: space-between; padding: 0 26px; font-size: 14px; font-weight: 600; }
+.status .island { width: 110px; height: 30px; background: #000; border-radius: 20px; }
+.status .sig { display: flex; gap: 6px; align-items: center; }
+.screens { flex: 1; min-height: 0; position: relative; }
+.screen { position: absolute; inset: 0; display: flex; flex-direction: column; }
+.screen[hidden] { display: none !important; }
+.scroll { flex: 1; overflow-y: auto; padding: 4px 18px 20px; scrollbar-width: thin; }
+.top { display: flex; align-items: center; gap: 10px; padding: 8px 18px 12px; flex: none; }
+.top h2 { font-family: var(--f-display); font-weight: 700; font-size: 22px; margin: 0; flex: 1; min-width: 0; }
+.top h3 { font-family: var(--f-display); font-weight: 600; font-size: 17px; margin: 0; flex: 1; min-width: 0; }
+.icon-btn { width: 36px; height: 36px; border-radius: 10px; border: 1px solid var(--line); background: var(--panel); display: grid; place-items: center; flex: none; }
+.icon-btn svg { width: 18px; height: 18px; }
+.eyebrow { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 18px 0 8px; display: flex; justify-content: space-between; align-items: baseline; }
+.eyebrow a { color: var(--brass); text-decoration: none; letter-spacing: .04em; text-transform: none; font-size: 12px; }
+
+.tabbar { flex: none; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); background: var(--ink); padding: 8px 8px 22px; }
+.tabbar button { background: none; border: 0; display: grid; justify-items: center; gap: 4px; font-size: 11px; color: var(--muted); padding: 4px; }
+.tabbar button svg { width: 22px; height: 22px; }
+.tabbar button[aria-selected="true"] { color: var(--brass); }
+
+/* Éléments communs */
+.card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.search { display: flex; align-items: center; gap: 10px; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 0 12px; height: 44px; }
+.search svg { width: 18px; height: 18px; color: var(--muted); flex: none; }
+.search input { flex: 1; min-width: 0; background: none; border: 0; color: var(--text); font: inherit; font-size: 14px; outline: none; }
+.chips { display: flex; gap: 8px; overflow-x: auto; margin-top: 10px; padding-bottom: 2px; scrollbar-width: none; }
+.chip { flex: none; font-size: 12px; padding: 6px 11px; border-radius: 999px; border: 1px solid var(--line); background: transparent; color: var(--muted); }
+.chip[aria-pressed="true"] { color: var(--ink); background: var(--brass); border-color: var(--brass); font-weight: 600; }
+.pill { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 3px 8px; border-radius: 999px; white-space: nowrap; }
+.pill.ok { color: var(--ok); background: var(--ok-soft); }
+.pill.warn { color: var(--brass); background: var(--brass-soft); }
+.pill.risk { color: var(--risk); background: var(--risk-soft); }
+.pill.blue { color: var(--blue); background: rgba(127,168,224,.14); }
+.btn { display: flex; align-items: center; justify-content: center; gap: 8px; height: 46px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); font-weight: 600; font-size: 14px; width: 100%; }
+.btn.primary { background: var(--brass); color: #1A1307; border-color: var(--brass); }
+.btn svg { width: 18px; height: 18px; }
+.btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 16px; }
+
+/* Carte cadastrale */
+.map { border-radius: 14px; overflow: hidden; border: 1px solid var(--line); background: var(--map-bg); position: relative; }
+.map svg { display: block; width: 100%; height: auto; }
+.map-foot { display: flex; justify-content: space-between; align-items: center; padding: 10px 12px; background: var(--panel); font-size: 12.5px; gap: 8px; }
+.map-foot b { font-family: var(--f-mono); font-weight: 500; }
+.map-foot button { background: none; border: 0; color: var(--brass); font-size: 12.5px; font-weight: 600; padding: 0; white-space: nowrap; }
+
+/* Statistiques */
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.stat { padding: 10px; }
+.stat .v { font-family: var(--f-display); font-weight: 700; font-size: 17px; }
+.stat .l { font-size: 10.5px; color: var(--muted); margin-top: 3px; line-height: 1.3; }
+.up { color: var(--ok); }
+
+/* Listes */
+.list { display: grid; gap: 8px; }
+.row { display: flex; gap: 12px; align-items: center; padding: 12px; text-align: left; width: 100%; }
+button.row { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+button.row:hover { border-color: #3B4E6B; }
+.thumb { width: 46px; height: 46px; border-radius: 10px; background: var(--panel-2); display: grid; place-items: center; flex: none; color: var(--brass); }
+.thumb svg { width: 22px; height: 22px; }
+.row .t { font-weight: 600; font-size: 14px; }
+.row .s { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.row .body { flex: 1; min-width: 0; }
+.row .end { text-align: right; flex: none; }
+.row .end .v { font-family: var(--f-display); font-weight: 700; font-size: 14px; }
+
+/* Fiche parcelle */
+.kv { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 14px; overflow: hidden; }
+.kv div { background: var(--panel); padding: 10px 12px; }
+.kv dt { font-size: 10.5px; color: var(--muted); letter-spacing: .04em; }
+.kv dd { margin: 3px 0 0; font-weight: 600; font-size: 14px; }
+.rules { padding: 4px 14px; }
+.rule { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); font-size: 13px; }
+.rule:last-child { border-bottom: 0; }
+.rule span:first-child { color: var(--muted); }
+.rule span:last-child { font-weight: 600; text-align: right; }
+.callout { margin-top: 10px; padding: 12px 14px; border-radius: 12px; background: var(--ok-soft); color: var(--text); font-size: 13px; line-height: 1.45; display: flex; gap: 10px; }
+.callout svg { width: 18px; height: 18px; color: var(--ok); flex: none; margin-top: 1px; }
+
+/* Nuage DVF */
+.dvf-chart { padding: 14px 14px 8px; }
+.dvf-chart svg { width: 100%; height: auto; display: block; }
+.comp { display: grid; grid-template-columns: auto 1fr auto; gap: 4px 12px; padding: 10px 14px; border-top: 1px solid var(--line); font-size: 13px; align-items: baseline; }
+.comp .d { font-family: var(--f-mono); font-size: 11.5px; color: var(--muted); }
+.comp .p { text-align: right; font-weight: 600; }
+.comp .m { grid-column: 2 / 4; font-size: 11.5px; color: var(--muted); }
+
+/* Assistant */
+.chat { display: flex; flex-direction: column; gap: 12px; }
+.ctx { font-size: 10.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); text-align: center; margin: 4px 0 2px; }
+.msg-user { align-self: flex-end; max-width: 85%; background: var(--brass); color: #1A1307; padding: 10px 14px; border-radius: 16px 16px 4px 16px; font-size: 14px; line-height: 1.45; }
+.msg-ai { display: flex; gap: 10px; align-items: flex-start; }
+.ai-dot { width: 26px; height: 26px; border-radius: 8px; background: var(--brass-soft); display: grid; place-items: center; flex: none; color: var(--brass); }
+.ai-dot svg { width: 15px; height: 15px; }
+.ai-body { flex: 1; min-width: 0; display: grid; gap: 10px; font-size: 14px; line-height: 1.5; }
+.ai-body p { margin: 0; }
+.docs { overflow: hidden; }
+.doc { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.doc:last-child { border-bottom: 0; }
+.doc .ic { width: 32px; height: 38px; border-radius: 5px; border: 1px solid var(--line); background: var(--panel-2); display: grid; place-items: center; font-family: var(--f-mono); font-size: 9px; color: var(--muted); flex: none; }
+.doc .t { font-size: 13.5px; font-weight: 600; }
+.doc .s { font-size: 11.5px; color: var(--muted); }
+.doc .body { flex: 1; min-width: 0; }
+.extract { padding: 4px 14px; }
+.extract .rule { font-size: 12.5px; }
+.extract h4 { font-family: var(--f-display); font-size: 13px; margin: 10px 0 2px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+.typing { display: inline-flex; gap: 4px; padding: 6px 0; }
+.typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+.typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+@keyframes blink { 0%, 100% { opacity: .25 } 50% { opacity: 1 } }
+.suggest { display: flex; gap: 6px; overflow-x: auto; padding: 0 18px 8px; scrollbar-width: none; flex: none; }
+.composer { flex: none; padding: 6px 14px 10px; display: flex; gap: 8px; align-items: center; }
+.composer .field { flex: 1; min-width: 0; display: flex; align-items: center; background: var(--panel); border: 1px solid var(--line); border-radius: 22px; padding: 0 6px 0 14px; height: 44px; }
+.composer input { flex: 1; min-width: 0; background: none; border: 0; outline: none; color: var(--text); font: inherit; font-size: 14px; }
+.send { width: 32px; height: 32px; border-radius: 50%; background: var(--brass); border: 0; display: grid; place-items: center; color: #1A1307; flex: none; }
+.send svg, .attach svg { width: 16px; height: 16px; }
+.attach { width: 44px; height: 44px; border-radius: 50%; background: var(--panel); border: 1px solid var(--line); display: grid; place-items: center; flex: none; }
+
+/* Projets */
+.pipeline { display: flex; gap: 4px; margin-top: 10px; }
+.pipeline i { flex: 1; height: 4px; border-radius: 2px; background: var(--line); }
+.pipeline i.on { background: var(--brass); }
+.proj { display: block; padding: 14px; text-align: left; width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; }
+.proj:hover { border-color: #3B4E6B; }
+.proj-head { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.proj .t { font-family: var(--f-display); font-weight: 600; font-size: 15px; }
+.proj .s { font-size: 12px; color: var(--muted); margin-top: 3px; }
+.proj-foot { display: flex; justify-content: space-between; margin-top: 12px; font-size: 12px; color: var(--muted); gap: 8px; }
+.proj-foot b { color: var(--text); font-weight: 600; }
+.stage-lbl { display: flex; justify-content: space-between; font-size: 10px; color: var(--muted); margin-top: 6px; }
+
+/* Bilan */
+.result { padding: 16px; background: linear-gradient(160deg, var(--panel-2), var(--panel)); }
+.result .lbl { font-size: 11px; color: var(--muted); letter-spacing: .08em; text-transform: uppercase; }
+.result .big { font-family: var(--f-display); font-weight: 800; font-size: 34px; margin-top: 4px; line-height: 1; }
+.result .sub { display: flex; gap: 8px; align-items: center; margin-top: 10px; flex-wrap: wrap; font-size: 13px; color: var(--muted); }
+.bar { display: flex; height: 12px; border-radius: 6px; overflow: hidden; margin-top: 16px; gap: 2px; }
+.bar i { display: block; height: 100%; transition: flex-grow .3s; }
+.legend { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 12px; margin-top: 10px; font-size: 11.5px; color: var(--muted); }
+.legend span { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.legend i { width: 8px; height: 8px; border-radius: 2px; flex: none; }
+.legend b { color: var(--text); font-weight: 500; margin-left: auto; }
+.fields { padding: 2px 14px; }
+.f { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 9px 0; border-bottom: 1px solid var(--line); }
+.f:last-child { border-bottom: 0; }
+.f label { font-size: 13px; }
+.f label small { display: block; color: var(--muted); font-size: 11px; margin-top: 2px; }
+.f .in { display: flex; align-items: center; gap: 4px; background: var(--ink); border: 1px solid var(--line); border-radius: 8px; padding: 0 10px; height: 36px; width: 128px; flex: none; }
+.f .in input { width: 100%; min-width: 0; background: none; border: 0; outline: none; color: var(--text); text-align: right; font: inherit; font-size: 14px; font-variant-numeric: tabular-nums; }
+.f .in span { color: var(--muted); font-size: 12px; }
+.f .in:focus-within { border-color: var(--brass); }
+.switch { position: relative; width: 44px; height: 26px; flex: none; }
+.switch input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.switch i { position: absolute; inset: 0; border-radius: 13px; background: var(--line); transition: background .2s; pointer-events: none; }
+.switch i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: var(--text); transition: transform .2s; }
+.switch input:checked + i { background: var(--brass); }
+.switch input:checked + i::after { transform: translateX(18px); }
+.switch input:focus-visible + i { outline: 2px solid var(--brass); outline-offset: 2px; }
+.detail .rule span:last-child { font-variant-numeric: tabular-nums; }
+.detail .rule.total { font-family: var(--f-display); }
+.detail .rule.total span { color: var(--text); font-weight: 700; }
+.fine { font-size: 11px; color: var(--muted); line-height: 1.5; margin-top: 10px; }
+
+/* Responsive */
+@media (max-width: 860px) {
+  .stage { grid-template-columns: minmax(0, 1fr); gap: 24px; justify-items: center; }
+  .intro { max-width: 390px; width: 100%; }
+  .intro h1 { font-size: 26px; margin-top: 18px; }
+  .jump { grid-template-columns: 1fr 1fr; }
+  .jump small { display: none; }
+}
+@media (max-width: 440px) {
+  body { padding-block: 12px; }
+  .phone { border-width: 0; border-radius: 22px; height: calc(100dvh - 24px); min-height: 600px; box-shadow: 0 0 0 1px var(--line); }
+  .status { display: none; }
+  .tabbar { padding-bottom: 12px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="stage">
+  <section class="intro" aria-label="Présentation">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 44 44" aria-hidden="true">
+        <rect x="1" y="1" width="42" height="42" rx="11" fill="none" stroke="#E2AA55" stroke-width="2"/>
+        <path d="M10 32 V16 l6 7 6-7 6 7 6-7 V32" fill="none" stroke="#E9EEF5" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>
+        <path d="M10 32 H34" stroke="#E2AA55" stroke-width="2.4" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">MADR<span>IMMO</span></div>
+        <div class="tag">L'assistant du marchand de biens</div>
+      </div>
+    </div>
+    <h1>De la parcelle au bilan, dans une seule conversation.</h1>
+    <p>Maquette cliquable de la première version : assistant IA, analyse de documents, cadastre, ventes DVF et bilan d'opération. Touchez les écrans du téléphone ou utilisez les raccourcis ci-dessous.</p>
+    <div class="jump" role="list">
+      <button role="listitem" data-go="explorer"><span class="k">A</span><span><b>Explorer</b><small>Recherche, carte cadastrale, prix du secteur</small></span></button>
+      <button role="listitem" data-go="parcelle"><span class="k">B</span><span><b>Fiche parcelle</b><small>Cadastre, PLU, risques, comparables DVF</small></span></button>
+      <button role="listitem" data-go="assistant"><span class="k">C</span><span><b>Assistant</b><small>Analyse du compromis et du PLU</small></span></button>
+      <button role="listitem" data-go="bilan"><span class="k">D</span><span><b>Bilan d'opération</b><small>Marge, TVA sur marge, frais de notaire réduits</small></span></button>
+    </div>
+    <div class="note"><i></i>Toutes les adresses, parcelles et montants sont des données d'exemple.</div>
+  </section>
+
+  <div class="phone" aria-label="Maquette de l'application MADRIMMO">
+    <div class="status" aria-hidden="true">
+      <span>9:41</span><span class="island"></span>
+      <span class="sig">
+        <svg width="18" height="12" viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1" fill="currentColor"/><rect x="5" y="5" width="3" height="7" rx="1" fill="currentColor"/><rect x="10" y="2" width="3" height="10" rx="1" fill="currentColor"/><rect x="15" y="0" width="3" height="12" rx="1" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12"><rect x=".5" y=".5" width="22" height="11" rx="3" fill="none" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="currentColor"/><rect x="24" y="4" width="2" height="4" rx="1" fill="currentColor" opacity=".5"/></svg>
+      </span>
+    </div>
+
+    <div class="screens">
+      <!-- ============ EXPLORER ============ -->
+      <section class="screen" data-screen="explorer">
+        <div class="top">
+          <h2>Explorer</h2>
+          <button class="icon-btn" aria-label="Alertes de veille"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 8a6 6 0 1 1 12 0c0 7 3 8 3 8H3s3-1 3-8"/><path d="M10 20a2 2 0 0 0 4 0"/></svg></button>
+        </div>
+        <div class="scroll">
+          <label class="search">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>
+            <input id="q" value="Montpellier · Boutonnet" aria-label="Rechercher une adresse, une commune ou une parcelle">
+          </label>
+          <div class="chips" role="group" aria-label="Filtres">
+            <button class="chip" aria-pressed="true">Maisons divisibles</button>
+            <button class="chip" aria-pressed="false">Immeubles</button>
+            <button class="chip" aria-pressed="false">Terrains</button>
+            <button class="chip" aria-pressed="false">Propriétaires SCI</button>
+          </div>
+
+          <div class="eyebrow">Plan cadastral <a href="#" data-go="parcelle">Fiche parcelle</a></div>
+          <div class="map">
+            <svg viewBox="0 0 340 200" role="img" aria-label="Plan cadastral avec la parcelle BK 0217 surlignée">
+              <rect width="340" height="200" fill="#E8E5DC"/>
+              <path d="M0 118 L340 92 L340 112 L0 140 Z" fill="#F6F4EE" stroke="#9A9486" stroke-width=".8"/>
+              <text x="210" y="106" font-family="Inter, sans-serif" font-size="7" fill="#6E685B" transform="rotate(-4.4 210 106)" letter-spacing="1">RUE DE L'EXEMPLE</text>
+              <g fill="none" stroke="#9A9486" stroke-width=".9">
+                <path d="M0 0 H70 V115 H0"/><path d="M70 0 H140 V110 H70"/><path d="M140 0 H200 V106 H140"/><path d="M200 0 H270 V100 H200"/><path d="M270 0 H340 V94"/>
+                <path d="M0 142 L60 137 L66 200 H0"/><path d="M190 128 L260 122 L266 200 H200"/><path d="M260 122 L340 115 V200 H266"/>
+              </g>
+              <g fill="#B9B3A5" stroke="#8A8475" stroke-width=".6">
+                <rect x="12" y="20" width="40" height="34"/><rect x="84" y="30" width="38" height="44"/><rect x="152" y="16" width="34" height="30"/><rect x="214" y="22" width="44" height="36"/><rect x="284" y="40" width="40" height="30"/>
+                <rect x="14" y="160" width="36" height="28"/><rect x="210" y="150" width="40" height="30"/><rect x="282" y="140" width="40" height="40"/>
+              </g>
+              <g data-go="parcelle" style="cursor:pointer">
+                <path d="M60 137 L190 128 L200 200 H66 Z" fill="rgba(226,170,85,.30)" stroke="#C98A2B" stroke-width="2.2"/>
+                <rect x="82" y="148" width="62" height="34" fill="#A79F8E" stroke="#6E685B" stroke-width=".8"/>
+                <rect x="104" y="183" width="64" height="11" rx="2" fill="#0F1724"/>
+                <text x="136" y="191" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="7.5" fill="#E2AA55">BK 0217</text>
+              </g>
+              <g font-family="JetBrains Mono, monospace" font-size="6.5" fill="#6E685B">
+                <text x="30" y="80">0209</text><text x="98" y="92">0210</text><text x="160" y="72">0211</text><text x="226" y="80">0212</text><text x="292" y="86">0213</text><text x="22" y="154">0216</text><text x="222" y="194">0218</text>
+              </g>
+            </svg>
+            <div class="map-foot"><span>Parcelle <b>BK 0217</b> · 612 m² · division possible</span><button data-go="parcelle">Ouvrir ›</button></div>
+          </div>
+
+          <div class="eyebrow">Secteur Boutonnet · ventes DVF 12 mois</div>
+          <div class="stats">
+            <div class="card stat"><div class="v num">3 640 €</div><div class="l">Prix médian au m² (maisons)</div></div>
+            <div class="card stat"><div class="v num up">+2,1 %</div><div class="l">Évolution sur 12 mois</div></div>
+            <div class="card stat"><div class="v num">184</div><div class="l">Ventes enregistrées</div></div>
+          </div>
+
+          <div class="eyebrow">Opportunités repérées</div>
+          <div class="list">
+            <button class="row" data-go="parcelle">
+              <span class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 11 12 4l9 7v9H3z"/><path d="M9 20v-6h6v6"/></svg></span>
+              <span class="body"><span class="t">Maison 148 m² sur 612 m²</span><span class="s" style="display:block">Division en 3 lots · zone U2</span></span>
+              <span class="end"><span class="v num">390 k€</span><br><span class="pill ok">Marge 16,8 %</span></span>
+            </button>
+            <button class="row">
+              <span class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><rect x="5" y="3" width="14" height="18"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2"/></svg></span>
+              <span class="body"><span class="t">Immeuble 4 lots, Écusson</span><span class="s" style="display:block">Propriétaire : SCI · DPE F</span></span>
+              <span class="end"><span class="v num">710 k€</span><br><span class="pill warn">À étudier</span></span>
+            </button>
+            <button class="row">
+              <span class="thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M3 20h18M5 20V9l7-5 7 5v11"/></svg></span>
+              <span class="body"><span class="t">Terrain 980 m², Castelnau</span><span class="s" style="display:block">Zone constructible · argiles moyen</span></span>
+              <span class="end"><span class="v num">265 k€</span><br><span class="pill blue">Nouveau</span></span>
+            </button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ FICHE PARCELLE ============ -->
+      <section class="screen" data-screen="parcelle" hidden>
+        <div class="top">
+          <button class="icon-btn" data-back aria-label="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>
+          <h3>Parcelle <span class="mono">BK 0217</span></h3>
+          <span class="pill ok">Divisible</span>
+        </div>
+        <div class="scroll">
+          <dl class="kv" style="margin:0">
+            <div><dt>Commune</dt><dd>Montpellier (34)</dd></div>
+            <div><dt>Section · numéro</dt><dd class="mono">BK · 0217</dd></div>
+            <div><dt>Contenance</dt><dd class="num">612 m²</dd></div>
+            <div><dt>Emprise bâtie</dt><dd class="num">148 m²</dd></div>
+          </dl>
+
+          <div class="eyebrow">PLU · zone U2 <span class="pill blue">Règlement analysé</span></div>
+          <div class="card rules">
+            <div class="rule"><span>Emprise au sol maximale</span><span>50 %</span></div>
+            <div class="rule"><span>Hauteur maximale</span><span>12 m (R+2)</span></div>
+            <div class="rule"><span>Pleine terre minimale</span><span>30 %</span></div>
+            <div class="rule"><span>Stationnement</span><span>1 place / logement</span></div>
+          </div>
+          <div class="callout">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 6 9 17l-5-5"/></svg>
+            <span>Il reste <b>158 m²</b> d'emprise constructible. Une division en 3 lots (maison existante + 2 terrains à bâtir) respecte la pleine terre exigée.</span>
+          </div>
+
+          <div class="eyebrow">Risques &amp; servitudes</div>
+          <div class="card rules">
+            <div class="rule"><span>Retrait-gonflement des argiles</span><span><span class="pill warn">Moyen</span></span></div>
+            <div class="rule"><span>Inondation (PPRI)</span><span><span class="pill ok">Hors zone</span></span></div>
+            <div class="rule"><span>Radon</span><span><span class="pill ok">Catégorie 1</span></span></div>
+            <div class="rule"><span>Servitudes d'utilité publique</span><span>Aucune</span></div>
+          </div>
+
+          <div class="eyebrow">Comparables DVF · rayon 500 m</div>
+          <div class="card">
+            <div class="dvf-chart">
+              <svg viewBox="0 0 320 120" role="img" aria-label="Prix au m² des ventes comparables : de 3 380 à 4 120 euros">
+                <g font-family="JetBrains Mono, monospace" font-size="8" fill="#8E9CB1">
+                  <text x="0" y="14">4 200</text><text x="0" y="56">3 800</text><text x="0" y="98">3 400</text>
+                  <text x="40" y="116">2024</text><text x="150" y="116">2025</text><text x="262" y="116">2026</text>
+                </g>
+                <g stroke="#2A3A52" stroke-width="1"><path d="M34 11 H320"/><path d="M34 53 H320"/><path d="M34 95 H320"/></g>
+                <path d="M34 50 H320" stroke="#E2AA55" stroke-width="1" stroke-dasharray="3 3"/>
+                <text x="318" y="46" text-anchor="end" font-family="Inter, sans-serif" font-size="8" fill="#E2AA55">médiane 3 640 €</text>
+                <g fill="#7FA8E0">
+                  <circle cx="58" cy="77" r="4"/><circle cx="96" cy="64" r="4"/><circle cx="130" cy="88" r="4"/><circle cx="168" cy="44" r="4"/><circle cx="205" cy="57" r="4"/><circle cx="240" cy="30" r="4"/><circle cx="276" cy="19" r="5" fill="#E2AA55"/><circle cx="300" cy="52" r="4"/>
+                </g>
+              </svg>
+            </div>
+            <div class="comp"><span class="d">09/2026</span><span>Maison 132 m², jardin 410 m²</span><span class="p num">543 800 €</span><span class="m num">4 120 €/m² · 220 m</span></div>
+            <div class="comp"><span class="d">05/2026</span><span>Maison 96 m², jardin 250 m²</span><span class="p num">349 400 €</span><span class="m num">3 640 €/m² · 340 m</span></div>
+            <div class="comp"><span class="d">11/2025</span><span>Terrain à bâtir 310 m²</span><span class="p num">168 000 €</span><span class="m num">542 €/m² de terrain · 410 m</span></div>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn" data-go="assistant"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"/></svg>Assistant</button>
+            <button class="btn primary" data-go="bilan">Chiffrer</button>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ ASSISTANT ============ -->
+      <section class="screen" data-screen="assistant" hidden>
+        <div class="top">
+          <button class="icon-btn" data-back aria-label="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>
+          <h3>Assistant MADRIMMO</h3>
+          <button class="icon-btn" aria-label="Options"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg></button>
+        </div>
+        <div class="scroll" id="chatScroll">
+          <div class="chat" id="chat">
+            <div class="ctx">Projet · Boutonnet, division 3 lots</div>
+            <div class="msg-user">Analyse ces documents pour mon projet de division.</div>
+            <div class="card docs">
+              <div class="doc"><span class="ic">PDF</span><span class="body"><span class="t" style="display:block">Compromis de vente.pdf</span><span class="s">Document contractuel · 18 pages</span></span><span class="pill ok">Lu</span></div>
+              <div class="doc"><span class="ic">PDF</span><span class="body"><span class="t" style="display:block">Règlement PLU zone U2.pdf</span><span class="s">Règles d'urbanisme · 42 pages</span></span><span class="pill ok">Lu</span></div>
+            </div>
+            <div class="msg-ai">
+              <span class="ai-dot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"/></svg></span>
+              <div class="ai-body">
+                <p>J'ai croisé vos deux pièces avec le cadastre et les ventes DVF du secteur. Voici l'essentiel.</p>
+                <div class="card extract">
+                  <h4>Compromis de vente <span class="pill warn">1 point d'attention</span></h4>
+                  <div class="rule"><span>Prix</span><span class="num">390 000 €</span></div>
+                  <div class="rule"><span>Signature de l'acte</span><span>au plus tard le 15/03/2027</span></div>
+                  <div class="rule"><span>Condition suspensive de prêt</span><span>Oui, 380 000 €</span></div>
+                  <div class="rule"><span>Condition de division</span><span style="color:var(--risk)">Absente</span></div>
+                  <h4>Règlement PLU</h4>
+                  <div class="rule"><span>Zone</span><span>U2 · emprise 50 %</span></div>
+                  <div class="rule"><span>Emprise restante</span><span class="num">158 m²</span></div>
+                </div>
+                <p>Ajoutez une <b>condition suspensive d'obtention de la déclaration préalable de division</b> avant de signer. Sans elle, vous achetez sans garantie de pouvoir diviser.</p>
+                <div class="map">
+                  <svg viewBox="0 0 340 120" aria-hidden="true">
+                    <rect width="340" height="120" fill="#E8E5DC"/>
+                    <path d="M0 30 L340 18 L340 32 L0 44 Z" fill="#F6F4EE" stroke="#9A9486" stroke-width=".8"/>
+                    <g fill="none" stroke="#9A9486" stroke-width=".9"><path d="M0 46 L80 43 L86 120"/><path d="M250 37 L340 34"/><path d="M250 37 L258 120"/></g>
+                    <path d="M80 43 L250 37 L258 120 H86 Z" fill="rgba(226,170,85,.30)" stroke="#C98A2B" stroke-width="2"/>
+                    <path d="M138 41 L144 120 M196 39 L203 120" stroke="#C98A2B" stroke-width="1.2" stroke-dasharray="4 3"/>
+                    <rect x="94" y="58" width="36" height="34" fill="#A79F8E" stroke="#6E685B" stroke-width=".8"/>
+                    <g font-family="JetBrains Mono, monospace" font-size="8" fill="#5A5446"><text x="100" y="108">Lot A</text><text x="158" y="84">Lot B</text><text x="216" y="84">Lot C</text></g>
+                  </svg>
+                  <div class="map-foot"><span>Projet de découpage <b>BK 0217</b></span><button data-go="parcelle">Ouvrir ›</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="suggest" id="suggest">
+          <button class="chip" data-ask="Quel prix de revente pour les lots ?">Prix de revente des lots ?</button>
+          <button class="chip" data-ask="Quelle marge sur cette opération ?">Ma marge ?</button>
+          <button class="chip" data-ask="Que dit le PLU sur la hauteur ?">Hauteur PLU ?</button>
+        </div>
+        <form class="composer" id="composer">
+          <button type="button" class="attach" id="attach" aria-label="Joindre un document"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.5 12.6 21a5.5 5.5 0 0 1-7.8-7.8l9-9a3.7 3.7 0 0 1 5.2 5.2l-9 9a1.8 1.8 0 0 1-2.6-2.6l8.3-8.3"/></svg></button>
+          <label class="field">
+            <input id="ask" placeholder="Poser une question sur ce dossier…" autocomplete="off" aria-label="Votre question">
+            <button class="send" aria-label="Envoyer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
+          </label>
+        </form>
+      </section>
+
+      <!-- ============ PROJETS ============ -->
+      <section class="screen" data-screen="projets" hidden>
+        <div class="top">
+          <h2>Projets</h2>
+          <button class="icon-btn" aria-label="Nouveau projet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div>
+        <div class="scroll">
+          <div class="stats">
+            <div class="card stat"><div class="v num">3</div><div class="l">Opérations en cours</div></div>
+            <div class="card stat"><div class="v num">2,1 M€</div><div class="l">Volume engagé</div></div>
+            <div class="card stat"><div class="v num up">15,4 %</div><div class="l">Marge moyenne visée</div></div>
+          </div>
+          <div class="eyebrow">En cours</div>
+          <div class="list">
+            <button class="proj" data-go="bilan">
+              <div class="proj-head"><div><div class="t">Boutonnet · division 3 lots</div><div class="s">Montpellier · BK 0217</div></div><span class="pill warn">Chiffrage</span></div>
+              <div class="pipeline"><i class="on"></i><i class="on"></i><i class="on"></i><i></i><i></i></div>
+              <div class="stage-lbl"><span>Prospection</span><span>Étude</span><span>Chiffrage</span><span>Travaux</span><span>Revente</span></div>
+              <div class="proj-foot"><span>Achat <b class="num">390 k€</b></span><span>Marge <b class="num" id="projMarge">137 k€</b></span><span>3 docs</span></div>
+            </button>
+            <button class="proj">
+              <div class="proj-head"><div><div class="t">Écusson · immeuble 4 lots</div><div class="s">Montpellier · propriétaire SCI</div></div><span class="pill blue">Étude</span></div>
+              <div class="pipeline"><i class="on"></i><i class="on"></i><i></i><i></i><i></i></div>
+              <div class="proj-foot"><span>Offre <b class="num">710 k€</b></span><span>Marge <b class="num">≈ 14 %</b></span><span>5 docs</span></div>
+            </button>
+            <button class="proj">
+              <div class="proj-head"><div><div class="t">Lattes · rénovation DPE G → C</div><div class="s">Appartement 74 m²</div></div><span class="pill ok">Revente</span></div>
+              <div class="pipeline"><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i><i class="on"></i></div>
+              <div class="proj-foot"><span>Achat <b class="num">198 k€</b></span><span>Marge <b class="num">41 k€</b></span><span>12 docs</span></div>
+            </button>
+          </div>
+          <div class="eyebrow">Mémoire du projet Boutonnet</div>
+          <div class="card rules">
+            <div class="rule"><span>27/11 · Assistant</span><span>Condition de division à ajouter</span></div>
+            <div class="rule"><span>25/11 · Géomètre</span><span>Devis reçu : 2 400 €</span></div>
+            <div class="rule"><span>20/11 · Visite</span><span>Toiture à reprendre</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ============ BILAN ============ -->
+      <section class="screen" data-screen="bilan" hidden>
+        <div class="top">
+          <button class="icon-btn" data-back aria-label="Retour"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg></button>
+          <h3>Bilan d'opération</h3>
+          <span class="pill blue">Boutonnet</span>
+        </div>
+        <div class="scroll">
+          <div class="card result">
+            <div class="lbl">Marge nette avant impôt</div>
+            <div class="big num" id="rMarge">—</div>
+            <div class="sub"><span id="rPct" class="pill ok">—</span><span>du prix de revente · objectif 15 %</span></div>
+            <div class="bar" id="rBar" aria-hidden="true"></div>
+            <div class="legend" id="rLegend"></div>
+          </div>
+
+          <div class="eyebrow">Hypothèses</div>
+          <div class="card fields">
+            <div class="f"><label for="iAchat">Prix d'achat</label><span class="in"><input id="iAchat" inputmode="numeric" value="390 000"><span>€</span></span></div>
+            <div class="f"><label for="iTravaux">Travaux<small>Viabilisation, toiture, clôtures</small></label><span class="in"><input id="iTravaux" inputmode="numeric" value="165 000"><span>€</span></span></div>
+            <div class="f"><label for="iDivers">Frais divers<small>Géomètre, diagnostics, DP</small></label><span class="in"><input id="iDivers" inputmode="numeric" value="15 000"><span>€</span></span></div>
+            <div class="f"><label for="iRevente">Prix de revente total<small>Maison + 2 terrains</small></label><span class="in"><input id="iRevente" inputmode="numeric" value="820 000"><span>€</span></span></div>
+            <div class="f"><label for="iTaux">Taux du financement</label><span class="in"><input id="iTaux" inputmode="decimal" value="4,5"><span>%</span></span></div>
+            <div class="f"><label for="iDuree">Durée de l'opération</label><span class="in"><input id="iDuree" inputmode="numeric" value="14"><span>mois</span></span></div>
+            <div class="f"><label for="iEngag">Frais de notaire réduits<small>Engagement de revente sous 5 ans</small></label><span class="switch"><input type="checkbox" id="iEngag" checked><i></i></span></div>
+            <div class="f"><label for="iTva">TVA sur marge<small>Revente de terrains à bâtir</small></label><span class="switch"><input type="checkbox" id="iTva" checked><i></i></span></div>
+          </div>
+
+          <div class="eyebrow">Détail du calcul</div>
+          <div class="card rules detail" id="rDetail"></div>
+          <p class="fine">Estimation indicative. Frais de notaire simplifiés à 3 % avec engagement de revente, 8 % sans. TVA sur marge : 20/120 de l'écart entre revente et achat. Frais financiers calculés sur l'achat et les travaux, sur toute la durée.</p>
+        </div>
+      </section>
+    </div>
+
+    <nav class="tabbar" role="tablist" aria-label="Navigation principale">
+      <button role="tab" data-tab="explorer" aria-selected="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>Explorer</button>
+      <button role="tab" data-tab="assistant" aria-selected="false"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"/></svg>Assistant</button>
+      <button role="tab" data-tab="projets" aria-selected="false"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Projets</button>
+    </nav>
+  </div>
+</div>
+
+<script>
+(function () {
+  const $ = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
+  const tabOf = { explorer: 'explorer', parcelle: 'explorer', assistant: 'assistant', projets: 'projets', bilan: 'projets' };
+  const history = ['explorer'];
+
+  function show(name, push = true) {
+    $$('.screen').forEach(s => { s.hidden = s.dataset.screen !== name; });
+    $$('.tabbar [data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tabOf[name])));
+    $$('.jump [data-go]').forEach(b => b.setAttribute('aria-current', String(b.dataset.go === name)));
+    if (push && history[history.length - 1] !== name) history.push(name);
+    const sc = $('[data-screen="' + name + '"] .scroll');
+    if (sc && name !== 'assistant') sc.scrollTop = 0;
+    if (name === 'assistant') scrollChat();
+  }
+
+  document.addEventListener('click', e => {
+    const go = e.target.closest('[data-go]');
+    if (go) { e.preventDefault(); show(go.dataset.go); return; }
+    const tab = e.target.closest('[data-tab]');
+    if (tab) { show(tab.dataset.tab); return; }
+    if (e.target.closest('[data-back]')) {
+      history.pop();
+      show(history[history.length - 1] || 'explorer', false);
+      return;
+    }
+    const chip = e.target.closest('.chips .chip');
+    if (chip) $$('.chip', chip.parentElement).forEach(c => c.setAttribute('aria-pressed', String(c === chip)));
+  });
+
+  /* ---------- Bilan ---------- */
+  const eur = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR', maximumFractionDigits: 0 });
+  const k = v => (Math.round(v / 1000)).toLocaleString('fr-FR') + ' k€';
+  const num = id => { const v = parseFloat(String($('#' + id).value).replace(/\s/g, '').replace(',', '.')); return isFinite(v) ? v : 0; };
+  const colors = { achat: '#7FA8E0', notaire: '#5B7BA8', travaux: '#E2AA55', divers: '#A97B3A', fin: '#8E9CB1', tva: '#E5816A', marge: '#72C39E' };
+
+  function bilan() {
+    const achat = num('iAchat'), travaux = num('iTravaux'), divers = num('iDivers'), revente = num('iRevente');
+    const taux = num('iTaux') / 100, duree = num('iDuree');
+    const notaire = achat * ($('#iEngag').checked ? 0.03 : 0.08);
+    const fin = (achat + travaux) * taux * duree / 12;
+    const tva = $('#iTva').checked ? Math.max(0, revente - achat) * 20 / 120 : 0;
+    const couts = achat + notaire + travaux + divers + fin + tva;
+    const marge = revente - couts;
+    const pct = revente > 0 ? marge / revente * 100 : 0;
+
+    $('#rMarge').textContent = eur.format(marge);
+    const p = $('#rPct');
+    p.textContent = pct.toLocaleString('fr-FR', { maximumFractionDigits: 1 }) + ' %';
+    p.className = 'pill ' + (pct >= 15 ? 'ok' : pct >= 10 ? 'warn' : 'risk');
+    $('#projMarge').textContent = k(marge);
+
+    const parts = [
+      ['achat', 'Achat', achat], ['notaire', 'Notaire', notaire], ['travaux', 'Travaux', travaux],
+      ['divers', 'Divers', divers], ['fin', 'Financement', fin], ['tva', 'TVA sur marge', tva], ['marge', 'Marge', Math.max(0, marge)]
+    ];
+    $('#rBar').innerHTML = parts.filter(x => x[2] > 0).map(x => `<i style="flex:${x[2]} 1 0;background:${colors[x[0]]}"></i>`).join('');
+    $('#rLegend').innerHTML = parts.map(x => `<span><i style="background:${colors[x[0]]}"></i>${x[1]}<b class="num">${k(x[2])}</b></span>`).join('');
+    $('#rDetail').innerHTML = [
+      ['Prix de revente', revente], ['Prix d\'achat', -achat], ['Frais de notaire', -notaire], ['Travaux', -travaux],
+      ['Frais divers', -divers], ['Frais financiers', -fin], ['TVA sur marge', -tva]
+    ].map(r => `<div class="rule"><span>${r[0]}</span><span>${r[1] < 0 ? '− ' : ''}${eur.format(Math.abs(r[1]))}</span></div>`).join('')
+      + `<div class="rule total"><span>Marge nette</span><span>${eur.format(marge)}</span></div>`;
+  }
+  $$('[data-screen="bilan"] input').forEach(i => i.addEventListener('input', bilan));
+  $$('[data-screen="bilan"] input[inputmode="numeric"]').forEach(i => i.addEventListener('blur', () => {
+    const v = parseFloat(i.value.replace(/\s/g, '')); if (isFinite(v)) i.value = v.toLocaleString('fr-FR');
+  }));
+  bilan();
+
+  /* ---------- Assistant ---------- */
+  const chat = $('#chat');
+  const star = '<span class="ai-dot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.2 6.8L21 11l-6.8 2.2L12 20l-2.2-6.8L3 11l6.8-2.2z"/></svg></span>';
+  function scrollChat() { const s = $('#chatScroll'); requestAnimationFrame(() => { s.scrollTop = s.scrollHeight; }); }
+  function addUser(text) { const d = document.createElement('div'); d.className = 'msg-user'; d.textContent = text; chat.appendChild(d); scrollChat(); }
+  function addAi(html, delay = 900) {
+    const d = document.createElement('div'); d.className = 'msg-ai';
+    d.innerHTML = star + '<div class="ai-body"><span class="typing"><i></i><i></i><i></i></span></div>';
+    chat.appendChild(d); scrollChat();
+    setTimeout(() => { $('.ai-body', d).innerHTML = html; scrollChat(); }, delay);
+  }
+  function answer(q) {
+    const t = q.toLowerCase();
+    if (/revente|prix|dvf|vendre|lot/.test(t)) return `<p>D'après 23 ventes DVF à moins de 500 m sur 24 mois :</p>
+      <div class="card extract"><div class="rule"><span>Lot A · maison 148 m² rénovée</span><span class="num">520 000 €</span></div>
+      <div class="rule"><span>Lot B · terrain 165 m²</span><span class="num">150 000 €</span></div>
+      <div class="rule"><span>Lot C · terrain 160 m²</span><span class="num">150 000 €</span></div>
+      <div class="rule"><span>Total</span><span class="num">820 000 €</span></div></div>
+      <p>La maison est estimée à 3 515 €/m², légèrement sous la médiane du secteur, pour tenir compte du jardin réduit.</p>`;
+    if (/marge|bilan|rentab|chiffr/.test(t)) return `<p>Avec vos hypothèses actuelles, la marge nette avant impôt est de <b>${$('#rMarge').textContent}</b>, soit ${$('#rPct').textContent} du prix de revente.</p>
+      <button class="btn primary" data-go="bilan">Ouvrir le bilan</button>`;
+    if (/plu|hauteur|urba|emprise|constru/.test(t)) return `<p>Zone U2, article 10 du règlement : hauteur maximale de <b>12 m à l'égout</b>, soit R+2. Les lots B et C peuvent recevoir une maison R+1 avec 80 m² d'emprise chacun, sous les 50 % d'emprise totale.</p>`;
+    return `<p>Je note la question pour le projet Boutonnet. Dans la version réelle, je répondrai à partir de vos documents, du cadastre, du PLU et des ventes DVF.</p>`;
+  }
+  function ask(q) {
+    if (!q.trim()) return;
+    addUser(q); addAi(answer(q));
+  }
+  $('#composer').addEventListener('submit', e => { e.preventDefault(); const i = $('#ask'); ask(i.value); i.value = ''; });
+  $('#suggest').addEventListener('click', e => { const c = e.target.closest('[data-ask]'); if (c) ask(c.dataset.ask); });
+  $('#attach').addEventListener('click', () => {
+    const d = document.createElement('div'); d.className = 'card docs';
+    d.innerHTML = '<div class="doc"><span class="ic">PDF</span><span class="body"><span class="t" style="display:block">Diagnostic DPE.pdf</span><span class="s">Diagnostic de performance énergétique</span></span><span class="pill blue">Ajouté</span></div>';
+    chat.appendChild(d); scrollChat();
+    addAi(`<div class="card extract"><h4>DPE de la maison <span class="pill risk">Classe E</span></h4>
+      <div class="rule"><span>Consommation</span><span class="num">287 kWh/m²/an</span></div>
+      <div class="rule"><span>Émissions</span><span class="num">61 kg CO₂/m²/an</span></div>
+      <div class="rule"><span>Chauffage</span><span>Fioul, chaudière 2004</span></div></div>
+      <p>Pour viser la classe C : pompe à chaleur et isolation des combles, environ <b>28 000 €</b>. C'est déjà compris dans les 165 000 € de travaux du bilan.</p>`, 1400);
+  });
+
+  show('explorer', false);
+})();
+</script>
