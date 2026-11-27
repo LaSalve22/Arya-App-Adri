@@ -1,6 +1,8 @@
 // Lecture d'une annonce immobilière collée en texte libre.
 // Version à base d'expressions régulières : l'agent IA pourra la remplacer en gardant la même sortie.
 
+export const estUnLien = (t: string) => /^\s*https?:\/\/\S+\s*$/.test(t);
+
 export interface AnnonceAnalysee {
   prix: number | null;
   surface: number | null;
@@ -57,10 +59,22 @@ export function analyserAnnonce(texte: string): AnnonceAnalysee {
     bas.match(/\bclasse\s*([a-g])\b/);
   if (dpe) r.dpe = dpe[1].toUpperCase();
 
-  const cp = t.match(/\b((?:09|11|12|30|31|32|34|46|48|65|66|81|82)\d{3})\b(?:\s+([A-ZÉÈÀÂÎÔÛ][\wÀ-ÿ'\- ]{1,40}))?/);
-  if (cp) {
-    r.codePostal = cp[1];
-    if (cp[2]) r.ville = cp[2].split(/\s{2,}|\n|,|\./)[0].trim();
+  // Code postal d'Occitanie, avec la ville sur la même ligne, avant (« Narbonne 11100 », format Leboncoin) ou après (« 11100 Narbonne »).
+  for (const ligne of t.split(/\r?\n/)) {
+    const m = ligne.match(/\b((?:09|11|12|30|31|32|34|46|48|65|66|81|82)\d{3})\b/);
+    if (!m) continue;
+    r.codePostal = m[1];
+    const nettoie = (v: string) => v.replace(/[()]/g, " ").split(/,|\.|\s{2,}|\s[-–]\s/).map((x) => x.trim()).filter(Boolean);
+    const avant = nettoie(ligne.slice(0, m.index)).pop();
+    const apres = nettoie(ligne.slice((m.index ?? 0) + 5))[0];
+    const estVille = (v?: string) => !!v && /^[A-ZÉÈÀÂÎÔÛ]/.test(v) && v.length <= 40 && !/\d/.test(v);
+    // Après le code postal (« 11100 Narbonne ») ou à la fin du texte avant (« Narbonne 11100 », « … à Castelnau-le-Lez (34170) »).
+    if (estVille(apres)) r.ville = apres!;
+    else if (avant) {
+      const mots = avant.match(/([A-ZÉÈÀÂÎÔÛ][\wÀ-ÿ'’-]*(?:[ -](?:sur|sous|en|le|la|les|de|du|des|lès|l'|d'|[A-ZÉÈÀÂÎÔÛ][\wÀ-ÿ'’-]*))*)\s*$/);
+      if (mots && estVille(mots[1])) r.ville = mots[1];
+    }
+    break;
   }
 
   r.champsTrouves = (Object.keys(r) as (keyof AnnonceAnalysee)[]).filter((k) => k !== "champsTrouves" && r[k] != null);
