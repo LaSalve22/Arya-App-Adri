@@ -5,6 +5,8 @@ import { prixMaxPourMarge, sensibilite } from "@/lib/bilan/nego";
 import { LIBELLES_POSTES } from "@/lib/bilan/defaut";
 import type { Hypotheses, Lot, PosteTravaux, RegimeTVA, ScenarioRevente } from "@/lib/bilan/types";
 import type { Offre } from "@/lib/projets";
+import ComparatifRP from "./ComparatifRP";
+import type { OptionsRP } from "@/lib/bilan/residence";
 import { classeMarge, dateFr, eur, m2, pct } from "@/lib/format";
 
 export interface EtatBilan {
@@ -12,6 +14,7 @@ export interface EtatBilan {
   prixAffiche: number;
   margeCible: number;
   historique: Offre[];
+  rp: OptionsRP;
 }
 
 const TAUX_TVA = [0.2, 0.1, 0.055];
@@ -163,6 +166,8 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
             )}
           </div>
         </div>
+
+        <ComparatifRP h={h} rp={etat.rp} setRp={(rp) => setEtat({ ...etat, rp })} />
 
         {/* ---------------- ACHAT ---------------- */}
         <details className="bloc" open>

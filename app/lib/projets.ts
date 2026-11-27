@@ -1,5 +1,6 @@
 // Projets enregistrés dans le navigateur (localStorage). Une base de données prendra le relais plus tard.
 import type { Hypotheses } from "./bilan/types";
+import type { OptionsRP } from "./bilan/residence";
 
 export interface Offre {
   date: string;
@@ -23,6 +24,7 @@ export interface Projet {
   margeCible: number;
   hypotheses: Hypotheses;
   historique: Offre[];
+  rp?: OptionsRP;
   creeLe: string;
   majLe: string;
 }

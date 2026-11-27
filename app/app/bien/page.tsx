@@ -4,6 +4,7 @@ import dynamic from "next/dynamic";
 import { useRouter, useSearchParams } from "next/navigation";
 import Bilan, { type EtatBilan } from "@/components/Bilan";
 import { hypothesesParDefaut } from "@/lib/bilan/defaut";
+import { optionsRPParDefaut } from "@/lib/bilan/residence";
 import type { Lot } from "@/lib/bilan/types";
 import type { Parcelle } from "@/lib/sources/cadastre";
 import type { InfosUrbanisme } from "@/lib/sources/urbanisme";
@@ -62,7 +63,7 @@ function FicheBien() {
     const surface = p?.surface ?? (Number(sp.get("surface")) || null);
     setSurfaceComp(surface);
     if (p) {
-      setEtat({ hypotheses: p.hypotheses, prixAffiche: p.prixAffiche, margeCible: p.margeCible, historique: p.historique });
+      setEtat({ hypotheses: p.hypotheses, prixAffiche: p.prixAffiche, margeCible: p.margeCible, historique: p.historique, rp: p.rp ?? optionsRPParDefaut() });
     } else {
       const h = hypothesesParDefaut();
       const prix = Number(sp.get("prix")) || 0;
@@ -72,7 +73,7 @@ function FicheBien() {
         h.travaux.surfaceTotale = Number(sp.get("terrain")) || surface;
       }
       h.lots = [{ libelle: "Revente", surface: surface ?? undefined, prixDown: null, prixTop: null, tva: 0 }];
-      setEtat({ hypotheses: h, prixAffiche: prix, margeCible: 0.15, historique: [] });
+      setEtat({ hypotheses: h, prixAffiche: prix, margeCible: 0.15, historique: [], rp: optionsRPParDefaut() });
     }
     const q = new URLSearchParams();
     for (const k of ["lon", "lat", "idu", "insee", "section", "numero"]) {
@@ -140,6 +141,7 @@ function FicheBien() {
       margeCible: etat.margeCible,
       hypotheses: etat.hypotheses,
       historique: etat.historique,
+      rp: etat.rp,
       creeLe: projet?.creeLe ?? new Date().toISOString(),
       majLe: new Date().toISOString(),
     };
