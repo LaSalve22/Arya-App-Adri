@@ -13,6 +13,9 @@ import { zonePLU } from "../sources/urbanisme";
 import { dpeProches, risques } from "../sources/risques";
 import { comparables, statsCommune, ventesCommune, type TypeBien } from "../sources/dvf";
 import { analyserAnnonce } from "../annonce/parse";
+import { calculerFinancement, nouvelleSource, planFinancement } from "../bilan/financement";
+import { calculerSortie, profilParDefaut, type FormeSociete } from "../bilan/profil";
+import type { TypeSource } from "../bilan/types";
 
 export const INSTRUCTIONS = `MADRIMMO : outils d'analyse pour marchand de biens en Occitanie (départements 09, 11, 12, 30, 31, 32, 34, 46, 48, 65, 66, 81, 82).
 Réponds en français. Méthode de calcul = Excel « bilan prévisionnel » de l'utilisateur : frais de notaire 3 % (engagement de revente), aléas 6 % des travaux, TVA sur marge par défaut, IS 15 % jusqu'à 42 500 € puis 25 %. Marge visée : 15 % du CA (bénéfice brut / CA).
@@ -22,7 +25,8 @@ Démarche type pour analyser un bien :
 3. comparables_dvf pour les prix de revente : prix bas = quartile bas (p25) × surface, prix haut = quartile haut (p75) × surface ;
 4. calculer_bilan, puis negociation pour le prix d'achat maximum et la sensibilité à la remise ;
 5. comparer_residence_principale si l'utilisateur envisage d'acheter en nom propre pour y habiter (plus-value exonérée, pas de TVA ni d'IS) ;
-6. lien_appli pour donner le lien vers l'appli web où l'utilisateur peut jouer avec le curseur de négociation.
+6. plan_financement pour le montage (fonds propres, prêt, levée obligataire, associés) et le net pour les associés selon SAS ou SARL ;
+7. lien_appli pour donner le lien vers l'appli web où l'utilisateur peut jouer avec le curseur de négociation.
 Signale toujours les hypothèses manquantes (prix, état, budget travaux, DPE) et ce qui a été supposé. Les données DVF couvrent 2021 à aujourd'hui, ventes de la commune uniquement.`;
 
 const json = (data: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(data, null, 1) }] });
@@ -51,6 +55,22 @@ const entreeBilan = {
   honoraires_vente: z.number().optional(),
   autres_frais: z.number().optional().describe("Honoraires de gestion, comptabilité, avocat… (TTC)"),
   apport: z.number().optional().describe("Fonds propres investis"),
+  sources_financement: z
+    .array(
+      z.object({
+        type: z.enum(["fonds_propres", "compte_courant", "pret", "obligataire", "associe_jv"]),
+        montant: z.number(),
+        taux_annuel: z.number().optional().describe("intérêts, coupon ou rémunération, ex. 0.05"),
+        duree_mois: z.number().optional(),
+        frais_dossier: z.number().optional(),
+        frais_garantie: z.number().optional(),
+        commission_engagement_pct: z.number().optional(),
+        frais_plateforme_pct: z.number().optional().describe("crowdfunding, ex. 0.05"),
+        part_benefice: z.number().optional().describe("associé en participation, ex. 0.3"),
+      }),
+    )
+    .optional()
+    .describe("Financement détaillé : remplace montant_emprunte/taux_emprunt"),
   hypotheses_avancees: z.record(z.string(), z.any()).optional().describe("Champs bruts du moteur (fusion profonde) pour tout réglage non prévu ci-dessus"),
 };
 type EntreeBilan = { [K in keyof typeof entreeBilan]?: z.infer<(typeof entreeBilan)[K]> };
@@ -78,6 +98,17 @@ export function hypothesesDepuisEntree(e: EntreeBilan): Hypotheses {
       ? Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined).map(([k, v]) => [k, nettoyer(v)]))
       : o;
   const h = hypothesesDepuisPartiel(nettoyer(p) as HypothesesPartielles);
+  if (e.sources_financement?.length) {
+    h.financement.sources = e.sources_financement.map((x, i) => {
+      const b = nouvelleSource(x.type as TypeSource, `s${i}`);
+      return {
+        ...b, montant: x.montant, tauxAnnuel: x.taux_annuel ?? b.tauxAnnuel, dureeMois: x.duree_mois ?? null,
+        fraisDossier: x.frais_dossier ?? b.fraisDossier, fraisGarantie: x.frais_garantie ?? 0, commissionEngagementPct: x.commission_engagement_pct ?? 0,
+        fraisPlateformePct: x.frais_plateforme_pct ?? b.fraisPlateformePct, partBenefice: x.part_benefice ?? b.partBenefice,
+      };
+    });
+    if (!e.apport) h.apport = h.financement.sources.filter((x) => x.type !== "pret" && x.type !== "obligataire").reduce((a, x) => a + x.montant, 0);
+  }
   return e.hypotheses_avancees ? hypothesesDepuisPartiel({ ...(h as HypothesesPartielles), ...(e.hypotheses_avancees as HypothesesPartielles) }) : h;
 }
 
@@ -238,6 +269,39 @@ export function creerServeur(origine: string): McpServer {
             rendement_apport: q.rendementApport == null ? null : Math.round(q.rendementApport * 1000) / 10 + " %",
           },
           avertissement: "Exonération seulement si le bien est réellement la résidence principale au moment de la vente. Des reventes répétées et rapprochées peuvent être requalifiées en activité de marchand de biens.",
+        });
+      } catch (x) { return erreur(x); }
+    },
+  );
+
+  s.registerTool(
+    "plan_financement",
+    {
+      description: "Plan de financement d'une opération : besoins (foncier, technique, frais) contre ressources (fonds propres, comptes courants, prêt, levée obligataire, associé en participation), coût de chaque source, puis sortie vers les associés selon la forme (SAS ou SARL) avec PFU 31,4 % en 2026.",
+      inputSchema: {
+        ...entreeBilan,
+        forme_societe: z.enum(["SAS", "SARL_majoritaire", "SARL_minoritaire"]).optional(),
+        capital_social: z.number().optional(),
+        distribuer: z.boolean().optional().describe("true = dividendes (défaut), false = bénéfice conservé en société"),
+      },
+    },
+    async (e) => {
+      try {
+        const h = hypothesesDepuisEntree(e);
+        const r = calculerBilan(h);
+        const f = calculerFinancement(h.financement.sources ?? [], h.financement.dureeMois);
+        const plan = planFinancement({ foncier: r.foncier.total.ttc, technique: r.technique.total.ttc, honorairesEtFrais: r.honorairesDivers.ttc + r.fraisDivers.total }, f);
+        const profil = { ...profilParDefaut(), forme: (e.forme_societe ?? "SAS") as FormeSociete, capitalSocial: e.capital_social ?? 1000, modeSortie: e.distribuer === false ? ("conserver" as const) : ("dividendes" as const) };
+        const cca = (h.financement.sources ?? []).filter((x) => x.type === "compte_courant").reduce((a, x) => a + x.montant, 0);
+        const sortie = calculerSortie(profil, r.beneficeNetSociete, r.beneficeBrut, r.impot, cca);
+        const a = (v: number) => Math.round(v);
+        return json({
+          bilan: resume(r),
+          besoins: { ...plan.besoins, total: a(plan.besoins.total) },
+          ressources: a(plan.ressources), ecart: a(plan.ecart), fonds_propres: a(f.fondsPropres), dette: a(f.dette),
+          cout_sources: f.sources.map((c) => ({ libelle: c.libelle, montant: a(c.montant), duree_mois: c.dureeMois, cout: a(c.total), cout_annuel: Math.round(c.coutAnnualise * 1000) / 10 + " %" })),
+          part_associes_participation: a(r.partageJV),
+          sortie: { forme: profil.forme, pfu: a(sortie.pfu), cotisations_sociales: a(sortie.cotisationsSociales), net_associes: a(sortie.netAssocies), taux_global: Math.round(sortie.tauxGlobal * 1000) / 10 + " %" },
         });
       } catch (x) { return erreur(x); }
     },

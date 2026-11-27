@@ -1,6 +1,8 @@
 // Projets enregistrés dans le navigateur (localStorage). Une base de données prendra le relais plus tard.
 import type { Hypotheses } from "./bilan/types";
 import type { OptionsRP } from "./bilan/residence";
+import type { ProfilMdB } from "./bilan/profil";
+import type { Caracteristiques, CoutsTechniques } from "./etat";
 
 export interface Offre {
   date: string;
@@ -25,6 +27,9 @@ export interface Projet {
   hypotheses: Hypotheses;
   historique: Offre[];
   rp?: OptionsRP;
+  profil?: ProfilMdB;
+  caracteristiques?: Caracteristiques;
+  coutsTechniques?: CoutsTechniques;
   creeLe: string;
   majLe: string;
 }

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.32.2",
+    "@react-pdf/renderer": "4.9.0",
     "leaflet": "^1.9.4",
     "next": "^15.5.29",
     "react": "^19.1.1",
@@ -24,5 +25,8 @@
     "@types/react-dom": "^19.1.9",
     "typescript": "^5.9.2",
     "vitest": "^3.2.4"
+  },
+  "overrides": {
+    "@react-pdf/font": "4.1.2"
   }
 }

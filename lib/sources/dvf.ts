@@ -119,13 +119,8 @@ export function distanceM(lon1: number, lat1: number, lon2: number, lat2: number
   return 2 * R * Math.asin(Math.sqrt(a));
 }
 
-export function quantile(trie: number[], q: number): number {
-  if (!trie.length) return 0;
-  const pos = (trie.length - 1) * q;
-  const b = Math.floor(pos);
-  const r = pos - b;
-  return trie[b + 1] !== undefined ? trie[b] + r * (trie[b + 1] - trie[b]) : trie[b];
-}
+export { quantile } from "../stats";
+import { quantile } from "../stats";
 
 export interface StatsPrix {
   nb: number;

@@ -47,6 +47,38 @@ export interface Lot {
   tva: number;
 }
 
+export type TypeSource = "fonds_propres" | "compte_courant" | "pret" | "obligataire" | "associe_jv";
+
+/** Une source de financement de l'opération. */
+export interface SourceFinancement {
+  id: string;
+  type: TypeSource;
+  libelle: string;
+  montant: number;
+  /** Taux annuel : intérêts du prêt, coupon obligataire, rémunération des comptes courants. */
+  tauxAnnuel: number;
+  /** Durée propre à la source, sinon durée de l'opération. */
+  dureeMois?: number | null;
+  fraisDossier: number;
+  fraisGarantie: number;
+  /** Commission d'engagement d'une ligne de crédit, en % du montant. */
+  commissionEngagementPct: number;
+  /** Frais de la plateforme de financement participatif, en % du montant levé. */
+  fraisPlateformePct: number;
+  /** Associé en participation : part du bénéfice net qui lui revient (0,3 = 30 %). */
+  partBenefice: number;
+}
+
+/** Frais de vente détaillés (en plus ou à la place des honoraires de vente saisis en montant). */
+export interface FraisVente {
+  /** Honoraires d'agence en % du prix de vente ; si null, on prend `honorairesVente` en montant. */
+  agencePct: number | null;
+  diagnostics: number;
+  mainlevee: number;
+  homeStaging: number;
+  autres: number;
+}
+
 export type RegimeTVA = "marge" | "exoneration" | "total";
 export type ScenarioRevente = "down" | "moyen" | "top";
 
@@ -78,11 +110,14 @@ export interface Hypotheses {
     fraisDossier: number;
     /** Si renseigné, remplace le calcul automatique (saisie directe comme dans l'Excel). */
     fraisFinanciersManuels: number | null;
+    /** Sources détaillées (prêt, obligations, comptes courants…). Si présentes, elles remplacent le calcul simple. */
+    sources?: SourceFinancement[];
   };
   gfa: number; // GFA si VEFR
   assuranceDO: number;
 
   honorairesVente: number;
+  fraisVente?: FraisVente;
 
   lots: Lot[];
   scenario: ScenarioRevente;
@@ -143,6 +178,10 @@ export interface ResultatBilan {
   prixRevient: number;
   margeSurPrixRevient: number;
   rendementFondsPropres: number | null;
+  /** Part du bénéfice net revenant aux associés en participation (sources « associe_jv »). */
+  partageJV: number;
+  /** Bénéfice net après IS et après la part des associés en participation. */
+  beneficeNetSociete: number;
   ratios: {
     prixAchatM2Carrez: number;
     prixAchatM2Total: number;

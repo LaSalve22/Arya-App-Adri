@@ -1,85 +1,133 @@
 "use client";
-import { Suspense, useCallback, useEffect, useState } from "react";
-import dynamic from "next/dynamic";
+import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import Bilan, { type EtatBilan } from "@/components/Bilan";
-import { hypothesesParDefaut } from "@/lib/bilan/defaut";
+import Bilan from "@/components/Bilan";
+import ComparatifRP from "@/components/ComparatifRP";
+import Recherche from "@/components/recherche/Recherche";
+import Nature from "@/components/onglets/Nature";
+import Marche from "@/components/onglets/Marche";
+import Similaires from "@/components/onglets/Similaires";
+import Profil from "@/components/onglets/Profil";
+import Financement from "@/components/onglets/Financement";
+import FraisFinanciers from "@/components/onglets/FraisFinanciers";
+import { CoutsTechniquesOnglet, FraisVenteOnglet } from "@/components/onglets/Couts";
+import Recap from "@/components/onglets/Recap";
+import { Bandeau } from "@/components/onglets/ui";
+import type { Comps, Fiche, PropsOnglet } from "@/components/onglets/types";
+import { etatParDefaut, type EtatAnalyse } from "@/lib/etat";
+import { analyser } from "@/lib/analyse";
+import { profilParDefaut } from "@/lib/bilan/profil";
 import { optionsRPParDefaut } from "@/lib/bilan/residence";
 import type { Lot } from "@/lib/bilan/types";
-import type { Parcelle } from "@/lib/sources/cadastre";
-import type { InfosUrbanisme } from "@/lib/sources/urbanisme";
-import { libelleTypeZone } from "@/lib/sources/libelles";
-import type { DPE, Risques } from "@/lib/sources/risques";
-import type { StatsPrix, Vente } from "@/lib/sources/dvf";
 import { enregistrerProjet, lireProjet, nouvelId, type Projet } from "@/lib/projets";
-import { eur, m2 } from "@/lib/format";
 
-const Carte = dynamic(() => import("@/components/Carte"), { ssr: false, loading: () => <div className="carte-map chargement">Chargement de la carte…</div> });
-
-type Res<T> = { ok: true; data: T } | { ok: false; erreur: string };
-interface Fiche {
-  lon: number;
-  lat: number;
-  codeInsee: string | null;
-  parcelle: Res<Parcelle | null>;
-  urbanisme: Res<InfosUrbanisme>;
-  risques: Res<Risques>;
-  dpe: Res<DPE[]>;
-}
-interface Comps {
-  rayon: number;
-  ventes: Vente[];
-  stats: StatsPrix;
-}
+const ONGLETS = [
+  ["recherche", "Recherche"],
+  ["bien", "Nature du bien"],
+  ["marche", "Ventes DVF et DPE"],
+  ["similaires", "Biens similaires vendus"],
+  ["profil", "Profil MdB"],
+  ["rp", "Résidence principale"],
+  ["comparatif", "Comparatif"],
+  ["bp", "BP avec travaux"],
+  ["frais-financiers", "Frais financiers"],
+  ["financement", "Mode de financement"],
+  ["couts", "Coûts techniques"],
+  ["vente", "Frais de vente"],
+  ["recap", "Récapitulatif"],
+] as const;
+type Onglet = (typeof ONGLETS)[number][0];
+const AVEC_BANDEAU: Onglet[] = ["profil", "rp", "comparatif", "frais-financiers", "financement", "couts", "vente"];
 
 export default function Page() {
   return (
     <Suspense fallback={<p className="chargement">Chargement…</p>}>
-      <FicheBien />
+      <Analyse />
     </Suspense>
   );
 }
 
-function FicheBien() {
+function Analyse() {
   const sp = useSearchParams();
   const router = useRouter();
+  const cle = sp.toString();
   const projetId = sp.get("projet");
+  const [onglet, setOnglet] = useState<Onglet>("bien");
   const [projet, setProjet] = useState<Projet | null>(null);
   const [fiche, setFiche] = useState<Fiche | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [comps, setComps] = useState<Comps | null>(null);
-  const [compsErr, setCompsErr] = useState<string | null>(null);
-  const [typeComp, setTypeComp] = useState("Maison");
-  const [surfaceComp, setSurfaceComp] = useState<number | null>(null);
-  const [etat, setEtat] = useState<EtatBilan | null>(null);
+  const [etat, setEtat] = useState<EtatAnalyse | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+
+  // Onglet actif dans l'adresse (#financement…), pour pouvoir partager un lien direct.
+  useEffect(() => {
+    const lire = () => {
+      const h = window.location.hash.slice(1) as Onglet;
+      if (ONGLETS.some(([k]) => k === h)) setOnglet(h);
+    };
+    lire();
+    window.addEventListener("hashchange", lire);
+    return () => window.removeEventListener("hashchange", lire);
+  }, []);
+  const aller = (o: Onglet) => {
+    setOnglet(o);
+    history.replaceState(null, "", `${window.location.pathname}${window.location.search}#${o}`);
+    window.scrollTo({ top: 0 });
+  };
 
   // Initialisation à partir de l'URL ou d'un projet enregistré
   useEffect(() => {
+    setFiche(null);
+    setComps(null);
+    setErr(null);
+    setMessage(null);
     const p = projetId ? lireProjet(projetId) : null;
     setProjet(p);
-    const type = p?.typeBien ?? sp.get("type") ?? "Maison";
-    setTypeComp(type === "Immeuble" ? "Appartement" : type);
-    const surface = p?.surface ?? (Number(sp.get("surface")) || null);
-    setSurfaceComp(surface);
+    const base = etatParDefaut();
     if (p) {
-      setEtat({ hypotheses: p.hypotheses, prixAffiche: p.prixAffiche, margeCible: p.margeCible, historique: p.historique, rp: p.rp ?? optionsRPParDefaut() });
+      setEtat({
+        ...base,
+        hypotheses: { ...base.hypotheses, ...p.hypotheses, financement: { ...base.hypotheses.financement, ...p.hypotheses.financement } },
+        prixAffiche: p.prixAffiche,
+        margeCible: p.margeCible,
+        historique: p.historique,
+        rp: p.rp ?? optionsRPParDefaut(),
+        profil: p.profil ?? profilParDefaut(),
+        caracteristiques: p.caracteristiques ?? { ...base.caracteristiques, type: p.typeBien, surface: p.surface },
+        coutsTechniques: p.coutsTechniques ?? base.coutsTechniques,
+      });
     } else {
-      const h = hypothesesParDefaut();
+      const h = base.hypotheses;
       const prix = Number(sp.get("prix")) || 0;
+      const surface = Number(sp.get("surface")) || null;
+      const terrain = Number(sp.get("terrain")) || null;
       h.prixAcquisition = prix;
       if (surface) {
         h.travaux.surfaceCarrez = surface;
-        h.travaux.surfaceTotale = Number(sp.get("terrain")) || surface;
+        h.travaux.surfaceTotale = terrain || surface;
       }
       h.lots = [{ libelle: "Revente", surface: surface ?? undefined, prixDown: null, prixTop: null, tva: 0 }];
-      setEtat({ hypotheses: h, prixAffiche: prix, margeCible: 0.15, historique: [], rp: optionsRPParDefaut() });
+      setEtat({
+        ...base,
+        hypotheses: h,
+        prixAffiche: prix,
+        caracteristiques: {
+          ...base.caracteristiques,
+          type: sp.get("type") ?? "Maison",
+          surface,
+          terrain,
+          pieces: Number(sp.get("pieces")) || null,
+          dpe: sp.get("dpe") ?? "",
+        },
+      });
     }
     const q = new URLSearchParams();
     for (const k of ["lon", "lat", "idu", "insee", "section", "numero"]) {
       const v = p ? ({ lon: p.lon, lat: p.lat, insee: p.codeInsee } as Record<string, unknown>)[k] : sp.get(k);
       if (v != null && v !== "") q.set(k, String(v));
     }
+    if (!q.toString()) return;
     fetch(`/api/bien?${q}`)
       .then(async (r) => {
         const d = await r.json();
@@ -88,22 +136,21 @@ function FicheBien() {
       })
       .catch((e) => setErr(e.message));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [projetId]);
+  }, [cle]);
 
-  // Comparables DVF
+  // Comparables DVF du bien (type et surface des caractéristiques)
+  const typeComp = etat ? (etat.caracteristiques.type === "Immeuble" ? "Appartement" : etat.caracteristiques.type) : "Maison";
+  const surfaceComp = etat?.caracteristiques.type === "Immeuble" ? null : etat?.caracteristiques.surface ?? null;
   useEffect(() => {
     if (!fiche?.codeInsee) return;
-    setComps(null);
-    setCompsErr(null);
     const q = new URLSearchParams({ insee: fiche.codeInsee, lon: String(fiche.lon), lat: String(fiche.lat), type: typeComp });
     if (surfaceComp && typeComp !== "Terrain") q.set("surface", String(surfaceComp));
     fetch(`/api/dvf/comparables?${q}`)
       .then(async (r) => {
         const d = await r.json();
-        if (!r.ok) throw new Error(d.erreur);
-        setComps(d);
+        if (r.ok) setComps(d);
       })
-      .catch((e) => setCompsErr(e.message));
+      .catch(() => {});
   }, [fiche, typeComp, surfaceComp]);
 
   const prefill = useCallback((): Lot[] | null => {
@@ -115,7 +162,7 @@ function FicheBien() {
     });
   }, [comps, etat, surfaceComp]);
 
-  // Pré-remplissage automatique de la revente dès l'arrivée des comparables, si rien n'est saisi.
+  // Pré-remplissage de la revente dès l'arrivée des comparables, si rien n'est saisi.
   useEffect(() => {
     if (!etat || projet || !comps?.stats.nb) return;
     if (etat.hypotheses.lots.some((l) => l.prixDown != null || l.prixTop != null)) return;
@@ -124,161 +171,83 @@ function FicheBien() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [comps]);
 
-  const label = projet?.adresse ?? sp.get("label") ?? (fiche?.parcelle.ok && fiche.parcelle.data ? `Parcelle ${fiche.parcelle.data.section} ${fiche.parcelle.data.numero}, ${fiche.parcelle.data.commune}` : "Bien");
+  const a = useMemo(() => (etat ? analyser(etat) : null), [etat]);
+  const sansBien = !projetId && !sp.get("lon") && !sp.get("idu") && !sp.get("section");
+  const libelle =
+    projet?.adresse ?? sp.get("label") ?? (fiche?.parcelle.ok && fiche.parcelle.data ? `Parcelle ${fiche.parcelle.data.section} ${fiche.parcelle.data.numero}, ${fiche.parcelle.data.commune}` : "Bien");
 
   function sauvegarder() {
     if (!etat || !fiche) return;
     const p: Projet = {
       id: projet?.id ?? nouvelId(),
-      titre: projet?.titre ?? label,
-      adresse: label,
+      titre: projet?.titre ?? libelle,
+      adresse: libelle,
       lon: fiche.lon,
       lat: fiche.lat,
       codeInsee: fiche.codeInsee,
-      typeBien: sp.get("type") ?? projet?.typeBien ?? typeComp,
-      surface: surfaceComp,
+      typeBien: etat.caracteristiques.type,
+      surface: etat.caracteristiques.surface,
       prixAffiche: etat.prixAffiche,
       margeCible: etat.margeCible,
       hypotheses: etat.hypotheses,
       historique: etat.historique,
       rp: etat.rp,
+      profil: etat.profil,
+      caracteristiques: etat.caracteristiques,
+      coutsTechniques: etat.coutsTechniques,
       creeLe: projet?.creeLe ?? new Date().toISOString(),
       majLe: new Date().toISOString(),
     };
     enregistrerProjet(p);
     setProjet(p);
     setMessage("Projet enregistré.");
-    if (!projetId) router.replace(`/bien?projet=${p.id}`);
+    if (!projetId) router.replace(`/bien?projet=${p.id}#${onglet}`);
   }
 
-  if (err) return <p className="erreur">{err}</p>;
-  const pa = fiche?.parcelle.ok ? fiche.parcelle.data : null;
-  const urba = fiche?.urbanisme.ok ? fiche.urbanisme.data : null;
-  const risq = fiche?.risques.ok ? fiche.risques.data : null;
-  const dpes = fiche?.dpe.ok ? fiche.dpe.data : [];
+  const props: PropsOnglet | null = etat && a ? { etat, setEtat, a, fiche, comps, libelle } : null;
 
   return (
     <div className="pile">
       <div className="entete">
         <div>
-          <h1>{label}</h1>
-          {sp.get("approx") && <p className="alerte">Adresse exacte inconnue : l'analyse se fait au centre de la commune. Les données de parcelle et de PLU ne concernent pas forcément le bien.</p>}
+          <h1>{sansBien ? "Nouvelle analyse" : libelle}</h1>
+          {sp.get("approx") && <p className="alerte">Adresse exacte inconnue : l'analyse se fait au centre de la commune.</p>}
         </div>
-        <div className="ligne">
-          {message && <span className="puce bon">{message}</span>}
-          <button className="btn principal" onClick={sauvegarder} disabled={!etat || !fiche}>{projet ? "Mettre à jour le projet" : "Enregistrer en projet"}</button>
-        </div>
+        {!sansBien && (
+          <div className="ligne">
+            {message && <span className="puce bon">{message}</span>}
+            <button className="btn principal" onClick={sauvegarder} disabled={!etat || !fiche}>{projet ? "Mettre à jour le projet" : "Enregistrer en projet"}</button>
+          </div>
+        )}
       </div>
 
-      {!fiche ? (
-        <p className="chargement">Interrogation du cadastre, du PLU, de Géorisques et de l'ADEME…</p>
-      ) : (
-        <div className="grille2">
-          <div className="pile">
-            <Carte lon={fiche.lon} lat={fiche.lat} parcelle={pa?.geometrie} ventes={comps?.ventes} />
-            <div className="carte">
-              <h2>Cadastre</h2>
-              {fiche.parcelle.ok ? (
-                pa ? (
-                  <table className="t"><tbody>
-                    <tr><td>Parcelle</td><td className="n">{pa.section} {pa.numero} · {pa.commune}</td></tr>
-                    <tr><td>Identifiant</td><td className="n">{pa.idu}</td></tr>
-                    <tr><td>Contenance</td><td className="n">{pa.contenance.toLocaleString("fr-FR")} m²</td></tr>
-                  </tbody></table>
-                ) : <p className="doux">Aucune parcelle à ce point (voirie ou domaine public).</p>
-              ) : <p className="erreur">{fiche.parcelle.erreur}</p>}
-            </div>
-          </div>
-          <div className="pile">
-            <div className="carte">
-              <h2>Urbanisme</h2>
-              {fiche.urbanisme.ok && urba ? (
-                urba.zone ? (
-                  <table className="t"><tbody>
-                    <tr><td>Zone</td><td className="n"><strong>{urba.zone.libelle}</strong> · {libelleTypeZone(urba.zone.typeZone)}</td></tr>
-                    {urba.zone.libelleLong && <tr><td>Libellé</td><td className="n">{urba.zone.libelleLong}</td></tr>}
-                    <tr><td>Document</td><td className="n">{urba.zone.document ?? "—"}</td></tr>
-                    <tr><td>Règlement</td><td className="n">{urba.zone.reglementPdf ? <a href={urba.zone.reglementPdf} target="_blank" rel="noreferrer">PDF du règlement</a> : "—"} · <a href={urba.lienGeoportail} target="_blank" rel="noreferrer">Géoportail</a></td></tr>
-                  </tbody></table>
-                ) : <p className="alerte">{urba.message} <a href={urba.lienGeoportail} target="_blank" rel="noreferrer">Ouvrir le Géoportail</a></p>
-              ) : <p className="erreur">{!fiche.urbanisme.ok && fiche.urbanisme.erreur}</p>}
-            </div>
-            <div className="carte">
-              <h2>Risques</h2>
-              {risq ? (
-                <div className="pile" style={{ gap: 8 }}>
-                  {risq.argiles && <div>Retrait-gonflement des argiles : <strong>{risq.argiles}</strong></div>}
-                  <div className="ligne" style={{ gap: 6 }}>{risq.risques.length ? risq.risques.map((x) => <span key={x} className="puce moyen">{x}</span>) : <span className="doux">Aucun risque recensé</span>}</div>
-                  <a href={risq.lienRapport} target="_blank" rel="noreferrer" className="petit">Rapport Géorisques complet (ERP)</a>
-                </div>
-              ) : <p className="erreur">{!fiche.risques.ok && fiche.risques.erreur}</p>}
-            </div>
-            <div className="carte">
-              <h2>DPE à moins de 150 m</h2>
-              {fiche.dpe.ok ? (
-                dpes.length ? (
-                  <div className="defile" style={{ maxHeight: 220, overflowY: "auto" }}>
-                    <table className="t"><tbody>
-                      {dpes.slice(0, 15).map((d) => (
-                        <tr key={d.numero}>
-                          <td><span className={`dpe dpe-${d.etiquette}`}>{d.etiquette}</span></td>
-                          <td>{d.adresse}<div className="doux petit">{d.typeBatiment} · {d.surface ?? "?"} m² · {d.anneeConstruction ?? "année ?"}</div></td>
-                          <td className="n">{d.date}</td>
-                        </tr>
-                      ))}
-                    </tbody></table>
-                  </div>
-                ) : <p className="doux">Aucun DPE récent à proximité.</p>
-              ) : <p className="erreur">{fiche.dpe.erreur}</p>}
-            </div>
-          </div>
-        </div>
-      )}
+      <nav className="barre-onglets" role="tablist" aria-label="Étapes de l'analyse">
+        {ONGLETS.map(([k, l]) => (
+          <button key={k} role="tab" aria-selected={onglet === k} onClick={() => aller(k)}>{l}</button>
+        ))}
+      </nav>
 
-      {fiche && (
-        <div className="carte pile">
-          <div className="entete">
-            <h2>Comparables DVF</h2>
-            <div className="ligne">
-              <select value={typeComp} onChange={(e) => setTypeComp(e.target.value)}>
-                <option>Maison</option><option>Appartement</option><option>Terrain</option><option>Local</option>
-              </select>
-              <label className="ligne petit doux">Surface <input type="number" style={{ width: 90 }} value={surfaceComp ?? ""} onChange={(e) => setSurfaceComp(Number(e.target.value) || null)} /> m² ± 30 %</label>
-            </div>
-          </div>
-          {compsErr && <p className="erreur">{compsErr}</p>}
-          {!comps && !compsErr && <p className="chargement">Téléchargement des ventes DVF de la commune…</p>}
-          {comps && (
-            <>
-              <div className="grille3">
-                <div className="kpi"><span className="v">{m2(comps.stats.mediane)}</span><span className="l">Médiane · {comps.stats.nb} ventes · rayon {comps.rayon} m</span></div>
-                <div className="kpi"><span className="v num">{m2(comps.stats.p25)} – {m2(comps.stats.p75)}</span><span className="l">Quartiles (prix bas / haut de revente)</span></div>
-                {surfaceComp ? <div className="kpi"><span className="v">{eur(comps.stats.mediane * surfaceComp)}</span><span className="l">Valeur médiane pour {surfaceComp} m²</span></div> : null}
-              </div>
-              <div className="defile" style={{ maxHeight: 320, overflowY: "auto" }}>
-                <table className="t">
-                  <thead><tr><th>Date</th><th>Adresse</th><th className="n">Distance</th><th className="n">Surface</th><th className="n">Terrain</th><th className="n">Prix</th><th className="n">€/m²</th></tr></thead>
-                  <tbody>
-                    {comps.ventes.map((v) => (
-                      <tr key={v.id}>
-                        <td className="num">{v.date}</td><td>{v.adresse}</td><td className="n">{v.distance} m</td>
-                        <td className="n">{Math.round(v.surface)} m²</td><td className="n">{v.terrain ? `${Math.round(v.terrain)} m²` : "—"}</td>
-                        <td className="n">{eur(v.prix)}</td><td className="n">{m2(v.prixM2)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-              <p className="doux petit">Ventes de la commune uniquement (2021 à aujourd'hui). Le rayon s'élargit automatiquement jusqu'à 3 km s'il y a moins de 8 ventes.</p>
-            </>
-          )}
-        </div>
-      )}
+      {err && <p className="erreur">{err}</p>}
+      {props && AVEC_BANDEAU.includes(onglet) && <Bandeau a={props.a} margeCible={props.etat.margeCible} />}
 
-      {etat && (
+      {onglet === "recherche" && <div className="carte"><Recherche titre={false} /></div>}
+      {sansBien && onglet !== "recherche" && <p className="alerte">Choisis d'abord un bien dans l'onglet « Recherche ».</p>}
+      {props && !sansBien && (
         <>
-          <h1>Bilan prévisionnel</h1>
-          <Bilan etat={etat} setEtat={setEtat} prefillDVF={prefill} />
+          {onglet === "bien" && <Nature {...props} />}
+          {onglet === "marche" && <Marche {...props} />}
+          {onglet === "similaires" && <Similaires {...props} />}
+          {onglet === "profil" && <Profil {...props} />}
+          {onglet === "rp" && <ComparatifRP h={props.etat.hypotheses} rp={props.etat.rp} setRp={(rp) => setEtat({ ...props.etat, rp })} mode="params" />}
+          {onglet === "comparatif" && (
+            <ComparatifRP h={props.etat.hypotheses} rp={props.etat.rp} setRp={(rp) => setEtat({ ...props.etat, rp })} mode="tableau" netAssocies={props.a.sortie.distribue ? props.a.sortie.netAssocies : null} />
+          )}
+          {onglet === "bp" && <Bilan etat={props.etat} setEtat={setEtat} prefillDVF={prefill} />}
+          {onglet === "frais-financiers" && <FraisFinanciers {...props} />}
+          {onglet === "financement" && <Financement {...props} />}
+          {onglet === "couts" && <CoutsTechniquesOnglet {...props} />}
+          {onglet === "vente" && <FraisVenteOnglet {...props} />}
+          {onglet === "recap" && <Recap {...props} />}
         </>
       )}
     </div>

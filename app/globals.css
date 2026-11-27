@@ -122,3 +122,17 @@ details.bloc > div { padding: 0 14px 14px; }
   header.barre { gap: 14px; }
   .grille2 { grid-template-columns: minmax(0, 1fr); }
 }
+
+/* ----- Onglets d'analyse ----- */
+.barre-onglets { position: sticky; top: 52px; z-index: 900; background: var(--fond); display: flex; gap: 4px; overflow-x: auto; padding: 6px 0; border-bottom: 1px solid var(--trait); scrollbar-width: thin; }
+.barre-onglets button { flex: none; background: var(--carte); border: 1px solid var(--trait); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 600; color: var(--doux); cursor: pointer; white-space: nowrap; }
+.barre-onglets button[aria-selected="true"] { background: var(--texte); color: #fff; border-color: var(--texte); }
+.bandeau { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; background: var(--carte); border: 1px solid var(--trait); border-radius: 10px; padding: 10px 14px; }
+.bandeau > div { display: grid; gap: 2px; min-width: 0; }
+.bandeau strong { font-variant-numeric: tabular-nums; font-size: 15px; }
+.bandeau small { color: var(--doux); font-size: 11px; }
+@media (max-width: 640px) { .bandeau { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.verdict { padding: 14px 16px; border-radius: 10px; font-size: 15px; }
+.verdict.bon { background: var(--bon-fond); } .verdict.moyen { background: var(--moyen-fond); } .verdict.mauvais { background: var(--mauvais-fond); }
+.grille2 > *, .grille3 > *, .pile > * { min-width: 0; }
+@media (max-width: 640px) { table.t td.n { white-space: normal; overflow-wrap: anywhere; } }

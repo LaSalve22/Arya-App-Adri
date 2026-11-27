@@ -17,7 +17,7 @@ function Champ({ label, v, set, echelle = 1, pas = 100, suffixe }: { label: stri
   );
 }
 
-export default function ComparatifRP({ h, rp, setRp }: { h: Hypotheses; rp: OptionsRP; setRp: (o: OptionsRP) => void }) {
+export default function ComparatifRP({ h, rp, setRp, mode = "tout", netAssocies }: { h: Hypotheses; rp: OptionsRP; setRp: (o: OptionsRP) => void; mode?: "params" | "tableau" | "tout"; netAssocies?: number | null }) {
   const r = useMemo(() => calculerBilan(h), [h]);
   const q = useMemo(() => calculerResidencePrincipale(h, rp), [h, rp]);
   const maj = (p: Partial<OptionsRP>) => setRp({ ...rp, ...p });
@@ -28,14 +28,14 @@ export default function ComparatifRP({ h, rp, setRp }: { h: Hypotheses; rp: Opti
   return (
     <div className="carte pile">
       <div className="entete">
-        <h2>Comparatif : marchand de biens ou résidence principale</h2>
+        <h2>{mode === "params" ? "Résidence principale : paramètres" : "Comparatif : marchand de biens ou résidence principale"}</h2>
         <span className="doux petit">Même bien, même prix, mêmes travaux, même revente</span>
       </div>
       <p className="doux petit">
         Résidence principale : achat en nom propre, tu habites le bien puis tu le revends. Pas de TVA, pas d'impôt sur les sociétés, plus-value
         exonérée. Frais de notaire de droit commun. Durée de détention = « Durée de l'opération ».
       </p>
-      <div className="grille3">
+      {mode !== "tableau" && <div className="grille3">
         <Champ label="Frais de notaire (ancien)" v={rp.tauxNotaire} echelle={100} pas={0.1} suffixe="%" set={(n) => maj({ tauxNotaire: n })} />
         <Champ label="Assurance emprunteur (par an)" v={rp.tauxAssurance} echelle={100} pas={0.05} suffixe="%" set={(n) => maj({ tauxAssurance: n })} />
         <Champ label="Garantie du prêt" v={rp.fraisGarantie} set={(n) => maj({ fraisGarantie: n })} />
@@ -43,7 +43,8 @@ export default function ComparatifRP({ h, rp, setRp }: { h: Hypotheses; rp: Opti
         <Champ label="Charges par mois (taxe foncière, copro…)" v={rp.chargesMensuelles} pas={10} set={(n) => maj({ chargesMensuelles: n })} />
         <Champ label="Loyer économisé par mois (optionnel)" v={rp.loyerEvite} pas={10} set={(n) => maj({ loyerEvite: n })} />
         <Champ label="Diagnostics et frais de vente hors agence" v={rp.fraisRevente} set={(n) => maj({ fraisRevente: n })} />
-      </div>
+      </div>}
+      {mode !== "params" && <>
       <p>
         <span className={`puce ${rpGagne ? "bon" : "moyen"}`}>
           {rpGagne ? "Résidence principale" : "Marchand de biens"} plus rentable de {eur(Math.abs(q.gainNet - r.beneficeNet))}
@@ -65,6 +66,7 @@ export default function ComparatifRP({ h, rp, setRp }: { h: Hypotheses; rp: Opti
             <L l="TVA due" a={eur(r.tvaDue)} b="0 €" />
             <L l="Impôt" a={`${eur(r.impot)} (IS)`} b="0 € (plus-value exonérée)" />
             <L l="Gain net" a={eur(r.beneficeNet)} b={eur(q.gainNet)} tot />
+            {netAssocies != null && <L l="Net en poche après sortie (dividendes)" a={eur(netAssocies)} b={eur(q.gainNet)} />}
             {q.loyerEconomise > 0 && <L l="Gain net avec loyer économisé" a="—" b={eur(q.gainAvecLoyer)} />}
             <L l="Marge" a={`${pct(r.margeSurCA)} du CA`} b={`${pct(q.margeSurRevente)} de la revente`} />
             <L l="Rendement de l'apport" a={r.rendementFondsPropres == null ? "—" : pct(r.rendementFondsPropres)} b={q.rendementApport == null ? "—" : pct(q.rendementApport)} />
@@ -72,7 +74,8 @@ export default function ComparatifRP({ h, rp, setRp }: { h: Hypotheses; rp: Opti
           </tbody>
         </table>
       </div>
-      <p className="doux petit">Côté société, le bénéfice net reste dans la société : le sortir en dividendes coûte en plus le prélèvement forfaitaire de 30 %.</p>
+      <p className="doux petit">Côté société, le bénéfice net reste dans la société : le sortir en dividendes coûte en plus le prélèvement forfaitaire (31,4 % en 2026, voir l'onglet Profil MdB).</p>
+      </>}
       <p className="alerte petit">
         L'exonération suppose que le bien soit réellement ta résidence principale au moment de la vente (occupation effective). Des achats-reventes
         répétés et rapprochés peuvent être requalifiés par l'administration fiscale en activité de marchand de biens. Comparatif indicatif, à valider

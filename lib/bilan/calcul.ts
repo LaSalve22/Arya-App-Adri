@@ -1,3 +1,4 @@
+import { calculerFinancement } from "./financement";
 import type { BudgetTravaux, Hypotheses, LigneMontant, PosteTravaux, ResultatBilan, ScenarioRevente } from "./types";
 
 const ligne = (ttc: number, tva: number): LigneMontant => ({ ttc, tva });
@@ -51,6 +52,7 @@ export function totauxTravaux(t: BudgetTravaux) {
 export function fraisFinanciers(h: Hypotheses): number {
   const f = h.financement;
   if (f.fraisFinanciersManuels != null) return f.fraisFinanciersManuels;
+  if (f.sources?.length) return calculerFinancement(f.sources, f.dureeMois).totalFrais;
   return f.montantEmprunte * f.tauxAnnuel * (f.dureeMois / 12) + f.fraisDossier;
 }
 
@@ -59,6 +61,14 @@ export function prixLot(l: { prixDown: number | null; prixTop: number | null }, 
   if (s === "down") return l.prixDown ?? l.prixTop ?? 0;
   if (s === "top") return l.prixTop ?? l.prixDown ?? 0;
   return vals.length ? vals.reduce((a, b) => a + b, 0) / vals.length : 0; // AVERAGE(B,C) avec IFERROR → 0
+}
+
+/** Honoraires de vente : montant saisi (cellule D31) ou % d'agence sur le CA, plus les frais de vente détaillés. */
+export function honorairesVenteTTC(h: Hypotheses, ca: number): number {
+  const fv = h.fraisVente;
+  if (!fv) return h.honorairesVente;
+  const agence = fv.agencePct != null ? ca * fv.agencePct : h.honorairesVente;
+  return agence + fv.diagnostics + fv.mainlevee + fv.homeStaging + fv.autres;
 }
 
 /** Calcul complet du bilan prévisionnel (onglet « BP en phase faisabilité »). */
@@ -89,11 +99,12 @@ export function calculerBilan(h: Hypotheses): ResultatBilan {
 
   // ---- BFR et charge totale (lignes 30 à 32)
   const bfr = ligne(fraisDiversTotal + honorairesDivers.ttc + technique.ttc + foncier.ttc, honorairesDivers.tva + technique.tva + foncier.tva);
-  const honorairesVente = ligne(h.honorairesVente, (h.honorairesVente / 120) * 20);
-
   // ---- RECETTES (lignes 34 à 39)
   const lots = h.lots.map((l) => ({ libelle: l.libelle, prix: prixLot(l, h.scenario), tva: l.tva }));
   const ca = lots.reduce((s, l) => s + l.prix, 0);
+
+  const hv = honorairesVenteTTC(h, ca);
+  const honorairesVente = ligne(hv, (hv / 120) * 20);
   const tvaVentes = lots.reduce((s, l) => s + l.tva, 0);
 
   // ---- RÉSUMÉ (lignes 41 à 55)
@@ -117,6 +128,9 @@ export function calculerBilan(h: Hypotheses): ResultatBilan {
   const isTaux25 = Math.max(0, base - 42500) * 0.25;
   const impot = isTaux15 + isTaux25;
   const beneficeNet = beneficeBrut - impot;
+
+  const partJV = h.financement.sources?.length ? calculerFinancement(h.financement.sources, h.financement.dureeMois).partBeneficeJV : 0;
+  const partageJV = Math.max(0, beneficeNet) * partJV;
 
   const prixRevient = bfr.ttc + honorairesVente.ttc + Math.max(0, tvaDue);
   const t = h.travaux;
@@ -154,6 +168,8 @@ export function calculerBilan(h: Hypotheses): ResultatBilan {
     prixRevient,
     margeSurPrixRevient: div(beneficeBrut, prixRevient),
     rendementFondsPropres: h.apport > 0 ? beneficeNet / h.apport : null,
+    partageJV,
+    beneficeNetSociete: beneficeNet - partageJV,
     ratios: {
       prixAchatM2Carrez: div(h.prixAcquisition, t.surfaceCarrez),
       prixAchatM2Total: div(h.prixAcquisition, t.surfaceTotale),

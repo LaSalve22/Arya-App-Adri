@@ -55,7 +55,7 @@ export function calculerResidencePrincipale(h: Hypotheses, rp: OptionsRP): Resul
   const garantieEtIra = rp.fraisGarantie + rp.ira;
   const financementTotal = interets + assurance + garantieEtIra;
   const charges = rp.chargesMensuelles * duree;
-  const fraisVente = h.honorairesVente + rp.fraisRevente;
+  const fraisVente = b.honorairesVente.ttc + rp.fraisRevente;
   const travaux = b.technique.total.ttc;
   const revente = b.recettes.chiffreAffaires;
   const coutTotal = h.prixAcquisition + notaire + h.apporteurAffaires + travaux + financementTotal + charges + fraisVente;
