@@ -326,8 +326,9 @@ details > div { padding: 0 14px 14px; }
     var b = courant;
     var titre = b.perso
       ? '<div class="carte pile"><h1>Ton bien</h1><p class="doux">Saisis prix, surfaces, travaux et lots. Pour les prix de revente, choisis une commune de référence parmi les biens chargés, ou saisis tes propres prix.</p></div>'
-      : '<div class="carte pile"><div class="entete"><h1>' + esc(b.titre) + '</h1><span class="puce moyen">DPE annoncé ' + esc(b.dpeAnnonce) + "</span></div>" +
-        '<div class="doux">' + esc(b.adresseComplete) + " · prix affiché " + eur(b.prix) + " · " + b.surface + " m²" + (b.terrain ? " sur " + b.terrain + " m² de terrain" : "") + "</div></div>";
+      : '<div class="carte pile"><div class="entete"><h1>' + esc(b.titre) + "</h1>" + (b.dpeAnnonce ? '<span class="puce moyen">DPE annoncé ' + esc(b.dpeAnnonce) + "</span>" : '<span class="puce">DPE non communiqué</span>') + "</div>" +
+        '<div class="doux">' + esc(b.adresseComplete) + (b.precision ? " · " + esc(b.precision) : "") + " · " + (b.prixEstime ? "prix de départ " : "prix affiché ") + eur(b.prix) + " · " + b.surface + " m²" + (b.terrain ? " sur " + b.terrain + " m² de terrain" : "") + "</div>" +
+        (b.prixEstime ? '<p class="alerte">Prix non communiqué : le prix de départ est la valeur médiane des ventes DVF comparables (' + m2(b.comparables.stats.mediane) + " × " + b.surface + " m²). Remplace-le par le prix réel dans « Prix affiché ».</p>" : "") + "</div>";
     app.innerHTML = titre + (b.perso ? "" : fiche(b)) + "<h1>Bilan prévisionnel</h1>" + formulaire();
     document.querySelector('[data-p="scenario"]').value = etats[id].h.scenario;
     maj();
