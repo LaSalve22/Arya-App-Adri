@@ -7,7 +7,7 @@ import { hypothesesParDefaut } from "@/lib/bilan/defaut";
 import type { Lot } from "@/lib/bilan/types";
 import type { Parcelle } from "@/lib/sources/cadastre";
 import type { InfosUrbanisme } from "@/lib/sources/urbanisme";
-import { libelleTypeZone } from "@/lib/sources/urbanisme";
+import { libelleTypeZone } from "@/lib/sources/libelles";
 import type { DPE, Risques } from "@/lib/sources/risques";
 import type { StatsPrix, Vente } from "@/lib/sources/dvf";
 import { enregistrerProjet, lireProjet, nouvelId, type Projet } from "@/lib/projets";

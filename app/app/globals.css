@@ -112,3 +112,13 @@ details.bloc > div { padding: 0 14px 14px; }
   .disposition-bilan { grid-template-columns: minmax(0, 1fr); }
   .collant { position: static; }
 }
+.collant { min-width: 0; }
+.collant .carte { overflow: hidden; }
+.collant .kpi .v { font-size: 18px; }
+.collant table.t td.n { white-space: normal; }
+.disposition-bilan > * { min-width: 0; }
+@media (max-width: 640px) {
+  header.barre .zone { display: none; }
+  header.barre { gap: 14px; }
+  .grille2 { grid-template-columns: minmax(0, 1fr); }
+}
