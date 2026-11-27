@@ -1,0 +1,426 @@
+<title>MADRIMMO Test</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Outil de travail : sobre, dense, lisible. Bleu nuit + laiton, comme la maquette. */
+:root {
+  --fond: #f3f4f6; --carte: #ffffff; --texte: #16202e; --doux: #5d6b7e; --trait: #dde2ea;
+  --accent: #a86d14; --accent-fond: #fbf1e1; --bleu: #2f5d9b;
+  --bon: #1d7f53; --bon-fond: #e1f3ea; --moyen: #9a6512; --moyen-fond: #fbf0dc; --mauvais: #b93a27; --mauvais-fond: #fbe6e2;
+  --barre: #16202e; --barre-texte: #ffffff; --parcelle: #a86d14; --voisin: #c7ced9;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --fond: #0e141d; --carte: #172130; --texte: #e8edf4; --doux: #95a3b6; --trait: #2a3749;
+  --accent: #e2aa55; --accent-fond: #2e2516; --bleu: #8db3ea;
+  --bon: #6fcf9f; --bon-fond: #173326; --moyen: #e8b45a; --moyen-fond: #33280f; --mauvais: #f08a74; --mauvais-fond: #3a1d17;
+  --barre: #0a0f16; --barre-texte: #ffffff; --parcelle: #e2aa55; --voisin: #3a475a; color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --fond: #0e141d; --carte: #172130; --texte: #e8edf4; --doux: #95a3b6; --trait: #2a3749;
+  --accent: #e2aa55; --accent-fond: #2e2516; --bleu: #8db3ea;
+  --bon: #6fcf9f; --bon-fond: #173326; --moyen: #e8b45a; --moyen-fond: #33280f; --mauvais: #f08a74; --mauvais-fond: #3a1d17;
+  --barre: #0a0f16; --barre-texte: #ffffff; --parcelle: #e2aa55; --voisin: #3a475a; color-scheme: dark; }
+* { box-sizing: border-box; }
+body { background: var(--fond); color: var(--texte); font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; margin: 0; }
+a { color: var(--bleu); }
+h1, h2, h3 { margin: 0; line-height: 1.2; text-wrap: balance; }
+h1 { font-size: 20px; } h2 { font-size: 16px; } h3 { font-size: 14px; }
+.barre { background: var(--barre); color: var(--barre-texte); padding-block: 12px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.barre .in { max-width: 1240px; margin: 0 auto; display: flex; gap: 12px 20px; align-items: center; flex-wrap: wrap; }
+.logo { font-weight: 800; letter-spacing: .08em; font-size: 17px; }
+.logo span { color: #e2aa55; }
+.barre select { max-width: 100%; }
+.barre .info { font-size: 12px; color: #a9b6c8; margin-left: auto; }
+main { max-width: 1240px; margin: 0 auto; padding-block: 18px 60px; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 16px; }
+.carte { background: var(--carte); border: 1px solid var(--trait); border-radius: 10px; padding: 16px; min-width: 0; }
+.g2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; }
+.g3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)); gap: 12px; }
+.pile { display: grid; gap: 12px; min-width: 0; }
+.ligne { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.entete { display: flex; justify-content: space-between; align-items: baseline; gap: 8px 12px; flex-wrap: wrap; }
+.doux { color: var(--doux); } .petit { font-size: 12px; }
+.num, td.n { font-variant-numeric: tabular-nums; }
+input, select { font: inherit; color: var(--texte); background: var(--carte); border: 1px solid var(--trait); border-radius: 6px; padding: 6px 8px; min-width: 0; }
+input[type="number"] { text-align: right; width: 120px; }
+input:focus-visible, select:focus-visible, button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+button { font: inherit; cursor: pointer; }
+.btn { font-weight: 600; border: 1px solid var(--trait); background: var(--carte); color: var(--texte); border-radius: 6px; padding: 7px 12px; }
+.btn.p { background: var(--accent); border-color: var(--accent); color: #1a1205; }
+.lien { background: none; border: 0; color: var(--bleu); padding: 0; }
+label.c { display: grid; gap: 4px; font-size: 12px; color: var(--doux); }
+.defile { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 13px; }
+th { text-align: left; font-weight: 600; color: var(--doux); font-size: 12px; border-bottom: 1px solid var(--trait); padding: 6px 8px; white-space: nowrap; }
+td { border-bottom: 1px solid var(--trait); padding: 6px 8px; vertical-align: middle; }
+td.n, th.n { text-align: right; white-space: nowrap; }
+tr.tot td { font-weight: 700; border-top: 2px solid var(--texte); }
+.kpi .v { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.kpi .l { font-size: 12px; color: var(--doux); }
+.puce { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+.bon { color: var(--bon); } .moyen { color: var(--moyen); } .mauvais { color: var(--mauvais); }
+.puce.bon, td.bon { background: var(--bon-fond); } .puce.moyen, td.moyen { background: var(--moyen-fond); } .puce.mauvais, td.mauvais { background: var(--mauvais-fond); }
+.alerte { padding: 10px 12px; border-radius: 6px; background: var(--moyen-fond); font-size: 13px; }
+.dpe { display: inline-grid; place-items: center; width: 22px; height: 22px; border-radius: 4px; color: #fff; font-weight: 700; font-size: 12px; }
+.dpe-A { background: #009c6d; } .dpe-B { background: #52b153; } .dpe-C { background: #6aa868; } .dpe-D { background: #d8c90c; color: #222; } .dpe-E { background: #e0a40c; color: #222; } .dpe-F { background: #e07a2e; } .dpe-G { background: #cf2a26; }
+.plan { width: 100%; max-width: 100%; height: auto; display: block; background: var(--fond); border-radius: 8px; border: 1px solid var(--trait); }
+main > *, .dispo > *, .pile > *, .g2 > *, .g3 > *, details > div > * { min-width: 0; }
+h1 { overflow-wrap: anywhere; }
+.dispo { display: grid; grid-template-columns: minmax(0, 1fr) 370px; gap: 16px; align-items: start; }
+.collant { position: sticky; top: 12px; }
+details { border: 1px solid var(--trait); border-radius: 8px; background: var(--carte); }
+summary { padding: 11px 14px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; }
+details > div { padding: 0 14px 14px; }
+.curseur { width: 100%; accent-color: var(--accent); }
+.rem { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; }
+.rem strong { font-size: 18px; }
+@media (max-width: 980px) { .dispo { grid-template-columns: minmax(0, 1fr); } .collant { position: static; } }
+@media (max-width: 520px) { input[type="number"] { width: 96px; } .barre .info { margin-left: 0; } }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<header class="barre">
+  <div class="in">
+    <div class="logo">MADR<span>IMMO</span></div>
+    <label class="ligne petit" style="color:#c9d3e0">Bien
+      <select id="choix" aria-label="Choisir un bien"></select>
+    </label>
+    <span class="info" id="info"></span>
+  </div>
+</header>
+<main id="app"></main>
+
+<script>/*__MOTEUR__*/</script>
+<script>
+(function () {
+  "use strict";
+  var DATA = "__DONNEES__";
+  var M = window.Moteur;
+  var eur0 = new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR", maximumFractionDigits: 0 });
+  function eur(v) { return v == null || !isFinite(v) ? "—" : eur0.format(v); }
+  function pct(v, d) { d = d == null ? 1 : d; return v == null || !isFinite(v) ? "—" : (v * 100).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d }) + " %"; }
+  function m2(v) { return v == null || !isFinite(v) || !v ? "—" : Math.round(v).toLocaleString("fr-FR") + " €/m²"; }
+  function esc(s) { return String(s == null ? "" : s).replace(/[&<>"]/g, function (c) { return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]; }); }
+  function cls(m, cible) { return m >= cible ? "bon" : m >= cible * 0.66 ? "moyen" : "mauvais"; }
+  function get(o, p) { return p.split(".").reduce(function (a, k) { return a == null ? a : a[k]; }, o); }
+  function set(o, p, v) { var ks = p.split("."); var last = ks.pop(); var t = ks.reduce(function (a, k) { return a[k]; }, o); t[last] = v; }
+  function lsGet(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} }
+
+  var biens = DATA.biens;
+  var PERSO = { id: "perso", titre: "Ton bien (saisie libre)", perso: true };
+  var etats = {};
+  var courant = null;
+
+  function etatInitial(b) {
+    var h = M.hypothesesParDefaut();
+    if (b.perso) {
+      h.prixAcquisition = 300000; h.travaux.surfaceCarrez = 100; h.travaux.surfaceTotale = 100;
+      h.lots = [{ libelle: "Revente", surface: 100, prixDown: 380000, prixTop: 420000, tva: 0 }];
+      return { h: h, prixAffiche: 300000, margeCible: 0.15, historique: [], ref: biens[0].id, rp: M.optionsRPParDefaut() };
+    }
+    h.prixAcquisition = b.prix;
+    h.travaux.surfaceCarrez = b.surface;
+    h.travaux.surfaceTotale = b.terrain || b.surface;
+    var s = b.comparables.stats;
+    var arr = function (v) { return Math.round(v / 1000) * 1000; };
+    if (b.type === "Immeuble") {
+      h.lots = [0, 1, 2, 3].map(function (i) { return { libelle: "Appartement " + (i + 1), surface: 52.5, prixDown: arr(s.p25 * 52.5), prixTop: arr(s.p75 * 52.5), tva: 0 }; });
+      h.travaux.secondOeuvre.cloisons.montantTTC = 18000; h.travaux.secondOeuvre.electricite.montantTTC = 24000; h.travaux.secondOeuvre.sanitaires.montantTTC = 22000;
+      h.travaux.honorairesTechniques.montantTTC = 8000; h.honorairesGestion = 3000;
+    } else {
+      h.lots = [{ libelle: "Revente", surface: b.surface, prixDown: arr(s.p25 * b.surface), prixTop: arr(s.p75 * b.surface), tva: 0 }];
+    }
+    return { h: h, prixAffiche: b.prix, margeCible: 0.15, historique: lsGet("madrimmo.demo.histo." + b.id) || [], rp: M.optionsRPParDefaut() };
+  }
+
+  // ---------- Plan de la parcelle en SVG (projection locale) ----------
+  function planParcelle(b) {
+    var g = b.parcelle && b.parcelle.geometrie;
+    if (!g) return '<p class="doux">Pas de contour de parcelle.</p>';
+    var polys = g.type === "MultiPolygon" ? g.coordinates : [g.coordinates];
+    var pts = []; polys.forEach(function (p) { p.forEach(function (r) { r.forEach(function (c) { pts.push(c); }); }); });
+    var k = Math.cos(b.lat * Math.PI / 180);
+    var xs = pts.map(function (c) { return c[0] * k; }), ys = pts.map(function (c) { return c[1]; });
+    var minx = Math.min.apply(0, xs), maxx = Math.max.apply(0, xs), miny = Math.min.apply(0, ys), maxy = Math.max.apply(0, ys);
+    var span = Math.max(maxx - minx, maxy - miny) || 1e-5, pad = span * 0.12, W = 320, H = 220;
+    var sc = Math.min((W - 20) / (maxx - minx + 2 * pad), (H - 30) / (maxy - miny + 2 * pad));
+    function X(lon) { return 10 + (lon * k - minx + pad) * sc; }
+    function Y(lat) { return 10 + (maxy - lat + pad) * sc; }
+    var d = polys.map(function (p) { return p.map(function (r) { return "M" + r.map(function (c) { return X(c[0]).toFixed(1) + "," + Y(c[1]).toFixed(1); }).join("L") + "Z"; }).join(""); }).join("");
+    var metres = span * 111320; var cible = metres / 3, puiss = Math.pow(10, Math.floor(Math.log10(cible))); var barre = [5, 2, 1].map(function (m) { return m * puiss; }).filter(function (v) { return v <= cible; })[0] || puiss; var px = barre / 111320 * sc;
+    return '<svg class="plan" viewBox="0 0 ' + W + " " + H + '" role="img" aria-label="Contour de la parcelle ' + esc(b.parcelle.section + " " + b.parcelle.numero) + '">' +
+      '<path d="' + d + '" fill="var(--accent-fond)" stroke="var(--parcelle)" stroke-width="2" stroke-linejoin="round"/>' +
+      '<circle cx="' + X(b.lon).toFixed(1) + '" cy="' + Y(b.lat).toFixed(1) + '" r="4" fill="var(--bleu)"/>' +
+      '<line x1="12" x2="' + (12 + px).toFixed(1) + '" y1="' + (H - 10) + '" y2="' + (H - 10) + '" stroke="var(--texte)" stroke-width="2"/>' +
+      '<text x="' + (16 + px).toFixed(1) + '" y="' + (H - 6) + '" font-size="10" fill="var(--doux)">' + barre + " m</text></svg>";
+  }
+
+  function fiche(b) {
+    var p = b.parcelle, u = b.urbanisme, r = b.risques, c = b.comparables, st = b.commune_stats;
+    var maxMed = Math.max.apply(0, st.parAnnee.map(function (a) { return a.mediane; }).concat([1]));
+    return '<div class="g2">' +
+      '<div class="carte pile"><div class="entete"><h2>Cadastre</h2><span class="petit doux">Parcellaire Express IGN</span></div>' + planParcelle(b) +
+        '<table><tbody><tr><td>Parcelle</td><td class="n">' + esc(p ? p.section + " " + p.numero + " · " + p.commune : "—") + '</td></tr>' +
+        '<tr><td>Identifiant</td><td class="n">' + esc(p ? p.idu : "—") + '</td></tr><tr><td>Contenance</td><td class="n">' + (p ? p.contenance.toLocaleString("fr-FR") + " m²" : "—") + "</td></tr></tbody></table></div>" +
+      '<div class="pile">' +
+        '<div class="carte pile"><h2>Urbanisme</h2>' + (u.zone ?
+          '<table><tbody><tr><td>Zone</td><td class="n"><strong>' + esc(u.zone.libelle) + "</strong></td></tr>" + (u.zone.libelleLong ? '<tr><td>Libellé</td><td>' + esc(u.zone.libelleLong) + "</td></tr>" : "") +
+          '<tr><td>Document</td><td class="n">' + esc(u.zone.document || "—") + '</td></tr><tr><td>Règlement</td><td class="n">' + (u.zone.reglementPdf ? '<a href="' + esc(u.zone.reglementPdf) + '" target="_blank" rel="noreferrer">PDF</a> · ' : "") + '<a href="' + esc(u.lienGeoportail) + '" target="_blank" rel="noreferrer">Géoportail</a></td></tr></tbody></table>' +
+          (/PSMV/.test(u.zone.libelle) ? '<p class="alerte petit">Secteur sauvegardé (PSMV) : travaux de façade et de structure encadrés par l\'Architecte des Bâtiments de France.</p>' : "")
+          : '<p class="alerte">' + esc(u.message) + "</p>") + "</div>" +
+        '<div class="carte pile"><h2>Risques</h2>' + (r.argiles ? "<div>Argiles : <strong>" + esc(r.argiles) + "</strong></div>" : "") +
+          '<div class="ligne" style="gap:6px">' + (r.risques.length ? r.risques.map(function (x) { return '<span class="puce moyen">' + esc(x) + "</span>"; }).join("") : '<span class="doux">Aucun risque recensé</span>') + "</div>" +
+          '<a class="petit" href="' + esc(r.lienRapport) + '" target="_blank" rel="noreferrer">Rapport Géorisques complet</a></div>' +
+        '<div class="carte pile"><h2>DPE à moins de 150 m</h2><div class="defile" style="max-height:200px;overflow-y:auto"><table><tbody>' +
+          (b.dpe.length ? b.dpe.slice(0, 10).map(function (d) { return '<tr><td><span class="dpe dpe-' + esc(d.etiquette) + '">' + esc(d.etiquette) + "</span></td><td>" + esc(d.adresse) + '<div class="petit doux">' + esc(d.typeBatiment) + " · " + (d.surface || "?") + " m²</div></td><td class=\"n petit\">" + esc(d.date) + "</td></tr>"; }).join("") : '<tr><td class="doux">Aucun DPE récent.</td></tr>') +
+        "</tbody></table></div></div>" +
+      "</div></div>" +
+      '<div class="carte pile"><div class="entete"><h2>Comparables DVF</h2><span class="petit doux">' + esc(b.typeComp) + "s de " + b.surfaceComp + " m² ± 30 %, rayon " + c.rayon + " m, " + c.stats.nb + " ventes</span></div>" +
+        '<div class="g3"><div class="kpi"><div class="v">' + m2(c.stats.mediane) + '</div><div class="l">Prix médian au m²</div></div>' +
+        '<div class="kpi"><div class="v">' + m2(c.stats.p25) + " – " + m2(c.stats.p75) + '</div><div class="l">Quartiles : prix de revente bas et haut</div></div>' +
+        '<div class="kpi"><div class="v">' + m2(st.global.mediane) + '</div><div class="l">Médiane de la commune (5 ans)</div></div></div>' +
+        '<div class="g2"><div class="defile" style="max-height:300px;overflow-y:auto"><table><thead><tr><th>Date</th><th>Adresse</th><th class="n">Dist.</th><th class="n">Surf.</th><th class="n">Prix</th><th class="n">€/m²</th></tr></thead><tbody>' +
+          c.ventes.slice(0, 25).map(function (v) { return '<tr><td class="num">' + esc(v.date) + "</td><td>" + esc(v.adresse) + '</td><td class="n">' + v.distance + ' m</td><td class="n">' + Math.round(v.surface) + ' m²</td><td class="n">' + eur(v.prix) + '</td><td class="n">' + m2(v.prixM2) + "</td></tr>"; }).join("") +
+        "</tbody></table></div>" +
+        '<div><table><thead><tr><th>Commune</th><th class="n">Ventes</th><th class="n">Médiane</th><th style="width:40%"></th></tr></thead><tbody>' +
+          st.parAnnee.map(function (a) { return "<tr><td>" + a.annee + '</td><td class="n">' + a.nb + '</td><td class="n">' + m2(a.mediane) + '</td><td><div style="height:8px;border-radius:4px;background:var(--accent);width:' + (a.mediane / maxMed * 100).toFixed(0) + '%"></div></td></tr>'; }).join("") +
+        "</tbody></table></div></div></div>";
+  }
+
+  // ---------- Formulaire du bilan ----------
+  function champ(path, opt) {
+    opt = opt || {};
+    var e = etats[courant.id], v = get(e.h, path);
+    var aff = opt.echelle ? Math.round(v * opt.echelle * 100) / 100 : v;
+    return '<span class="ligne" style="gap:4px;flex-wrap:nowrap;justify-content:flex-end"><input type="number" id="f-' + path.replace(/\./g, "-") + '" data-p="' + path + '"' + (opt.echelle ? ' data-e="' + opt.echelle + '"' : "") +
+      ' step="' + (opt.pas || 1000) + '" value="' + (aff == null ? "" : aff) + '"' + (opt.l ? ' style="width:' + opt.l + 'px"' : "") + ">" + (opt.s ? '<span class="petit doux">' + opt.s + "</span>" : "") + "</span>";
+  }
+  function champRP(path, opt) {
+    opt = opt || {};
+    var v = etats[courant.id].rp[path];
+    var aff = opt.echelle ? Math.round(v * opt.echelle * 100) / 100 : v;
+    return '<span class="ligne" style="gap:4px;flex-wrap:nowrap"><input type="number" data-rp="' + path + '"' + (opt.echelle ? ' data-e="' + opt.echelle + '"' : "") + ' step="' + (opt.pas || 100) + '" value="' + aff + '"' + (opt.l ? ' style="width:' + opt.l + 'px"' : "") + ">" + (opt.s ? '<span class="petit doux">' + opt.s + "</span>" : "") + "</span>";
+  }
+  function selTVA(path) {
+    var v = get(etats[courant.id].h, path);
+    return '<select data-p="' + path + '" aria-label="Taux de TVA">' + [0.2, 0.1, 0.055].map(function (t) { return '<option value="' + t + '"' + (t === v ? " selected" : "") + ">" + pct(t, t === 0.055 ? 1 : 0) + "</option>"; }).join("") + "</select>";
+  }
+  function L(lib, html, aide) { return "<tr><td>" + lib + (aide ? '<div class="petit doux">' + aide + "</div>" : "") + '</td><td class="n">' + html + "</td></tr>"; }
+
+  function formulaire() {
+    var e = etats[courant.id], h = e.h, LP = M.LIBELLES_POSTES;
+    var postes = ["grosOeuvre", "secondOeuvre"].map(function (g) {
+      return Object.keys(h.travaux[g]).map(function (k) {
+        var base = "travaux." + g + "." + k;
+        return "<tr><td>" + LP[k] + ' <span class="petit doux">· ' + (g === "grosOeuvre" ? "gros œuvre, seuil 50 %" : "second œuvre, seuil 66 %") + '</span></td><td class="n">' + champ(base + ".montantTTC") + '</td><td class="n">' + selTVA(base + ".tauxTVA") + '</td><td class="n">' + champ(base + ".pctRenove", { echelle: 100, pas: 5, s: "%", l: 70 }) + "</td></tr>";
+      }).join("");
+    }).join("");
+    var autres = [["honorairesTechniques", "Honoraires techniques (architecte, géomètre…)"], ["raccordements", "Raccordement réseaux"], ["voirie", "Voiries et espaces verts"]].map(function (x) {
+      return "<tr><td>" + x[1] + '</td><td class="n">' + champ("travaux." + x[0] + ".montantTTC") + '</td><td class="n">' + selTVA("travaux." + x[0] + ".tauxTVA") + "</td><td></td></tr>";
+    }).join("");
+    var lots = h.lots.map(function (l, i) {
+      return '<tr><td><input data-p="lots.' + i + '.libelle" data-t="txt" value="' + esc(l.libelle) + '" aria-label="Nom du lot" style="width:100%"></td><td class="n">' + champ("lots." + i + ".surface", { pas: 1, l: 70 }) + '</td><td class="n">' + champ("lots." + i + ".prixDown") + '</td><td class="n">' + champ("lots." + i + ".prixTop") + '</td><td class="n" data-moy="' + i + '"></td><td><button class="lien" data-retire="' + i + '">Retirer</button></td></tr>';
+    }).join("");
+    var refPerso = courant.perso ? '<label class="c">Prix de revente de référence (DVF de la commune)<select id="ref">' + biens.map(function (b) { return '<option value="' + b.id + '"' + (e.ref === b.id ? " selected" : "") + ">" + esc(b.commune + " · " + b.typeComp.toLowerCase() + "s · " + m2(b.commune_stats.global.mediane)) + "</option>"; }).join("") + "</select></label>" : "";
+
+    return '<div class="dispo"><div class="pile">' +
+      '<div class="carte pile"><div class="entete"><h2>Négociation</h2><span class="petit doux">Le bilan se recalcule à chaque mouvement du curseur.</span></div>' +
+        '<div class="g3"><label class="c">Prix affiché (€)<input type="number" id="affiche" step="1000" value="' + e.prixAffiche + '"></label>' +
+        '<label class="c">Prix d\'achat négocié (€)' + champ("prixAcquisition") + "</label>" +
+        '<label class="c">Marge cible (bénéfice brut / CA)<span class="ligne" style="gap:4px"><input type="number" id="cible" step="0.5" value="' + Math.round(e.margeCible * 1000) / 10 + '" style="width:80px"><span class="petit doux">%</span></span></label></div>' +
+        '<div class="rem"><input class="curseur" id="remise" type="range" min="0" max="0.35" step="0.005" aria-label="Remise sur le prix affiché"><strong class="num" id="remise-v"></strong></div>' +
+        '<div id="nego"></div>' +
+        '<div class="pile"><h3>Historique de négociation</h3><div class="ligne"><select id="type-offre" aria-label="Type d\'offre"><option value="offre">Mon offre</option><option value="contre-offre">Contre-offre vendeur</option><option value="accord">Accord</option></select>' +
+        '<input id="note" placeholder="Note (ex. offre écrite via l\'agence)" style="flex:1;min-width:160px"><button class="btn" id="noter">Noter au prix actuel</button></div><div id="histo"></div></div>' +
+      "</div>" +
+      '<div class="carte pile"><div class="entete"><h2>Comparatif : marchand de biens ou résidence principale</h2><span class="petit doux">Même bien, même prix, mêmes travaux, même revente</span></div>' +
+        '<p class="petit doux">Résidence principale : achat en nom propre, tu habites le bien puis tu le revends. Pas de TVA, pas d\'impôt sur les sociétés, plus-value exonérée. Frais de notaire de droit commun. La durée de détention est celle du financement (« Durée de l\'opération »).</p>' +
+        '<div class="g3">' +
+          '<label class="c">Frais de notaire (ancien)' + champRP("tauxNotaire", { echelle: 100, pas: 0.1, s: "%", l: 80 }) + "</label>" +
+          '<label class="c">Assurance emprunteur (par an)' + champRP("tauxAssurance", { echelle: 100, pas: 0.05, s: "%", l: 80 }) + "</label>" +
+          '<label class="c">Garantie du prêt (caution, hypothèque)' + champRP("fraisGarantie", { pas: 100 }) + "</label>" +
+          '<label class="c">Indemnités de remboursement anticipé' + champRP("ira", { pas: 100 }) + "</label>" +
+          '<label class="c">Charges par mois (taxe foncière, copro, assurance)' + champRP("chargesMensuelles", { pas: 10 }) + "</label>" +
+          '<label class="c">Loyer économisé par mois (optionnel)' + champRP("loyerEvite", { pas: 10 }) + "</label>" +
+          '<label class="c">Diagnostics et frais de vente hors agence' + champRP("fraisRevente", { pas: 100 }) + "</label>" +
+        "</div>" +
+        '<div id="comparatif"></div>' +
+        '<p class="alerte petit">L\'exonération de plus-value suppose que le bien soit réellement ta résidence principale au moment de la vente (occupation effective, pas une simple domiciliation). Des achats-reventes répétés et rapprochés peuvent être requalifiés par l\'administration fiscale en activité de marchand de biens, avec un bénéfice imposable. Comparatif indicatif, à valider avec ton notaire.</p>' +
+      "</div>" +
+      '<details open><summary><span>Achat et charge foncière</span><span class="num" data-r="foncier"></span></summary><div><table><tbody>' +
+        L("Indemnité d'éviction", champ("indemniteEviction")) +
+        L("Frais de notaire", '<select data-p="tauxNotaire" aria-label="Taux des frais de notaire"><option value="0.03"' + (h.tauxNotaire === 0.03 ? " selected" : "") + '>3 % · engagement de revente</option><option value="0.08"' + (h.tauxNotaire === 0.08 ? " selected" : "") + ">8 % · droit commun</option></select>", "3 % avec engagement de revente (art. 1115 CGI)") +
+        L("Apporteur d'affaires (TTC)", champ("apporteurAffaires")) +
+      "</tbody></table></div></details>" +
+      '<details><summary><span>Budget travaux et coût technique</span><span class="num" data-r="technique"></span></summary><div class="pile">' +
+        '<div class="g3"><label class="c">Surface au sol ou terrain (m²)' + champ("travaux.surfaceTotale", { pas: 1 }) + '</label><label class="c">Surface Carrez vendue (m²)' + champ("travaux.surfaceCarrez", { pas: 1 }) + "</label></div>" +
+        '<div class="defile"><table><thead><tr><th>Poste</th><th class="n">Montant TTC</th><th class="n">TVA</th><th class="n">% rénové</th></tr></thead><tbody>' + postes + autres +
+        "<tr><td>Surélévation (TVA 20 %)</td><td class=\"n\">" + champ("travaux.surelevation") + "</td><td></td><td></td></tr>" +
+        "<tr><td>Extension (TVA 20 %)</td><td class=\"n\">" + champ("travaux.extension") + "</td><td></td><td></td></tr>" +
+        "<tr><td>Équipement, ameublement</td><td class=\"n\">" + champ("ameublement") + "</td><td></td><td></td></tr>" +
+        '<tr><td>Aléas</td><td class="n" data-r="aleas"></td><td></td><td class="n">' + champ("tauxAleas", { echelle: 100, pas: 1, s: "%", l: 70 }) + "</td></tr>" +
+        '</tbody></table></div><p class="alerte" id="bascule" hidden></p></div></details>' +
+      '<details><summary><span>Honoraires et frais divers</span><span class="num" data-r="frais"></span></summary><div><table><tbody>' +
+        L("Honoraires de gestion (TTC)", champ("honorairesGestion")) + L("Frais de comptabilité (TTC)", champ("fraisComptabilite")) + L("Frais de justice (TTC)", champ("fraisJustice")) +
+        L("Montant emprunté", champ("financement.montantEmprunte")) + L("Taux annuel", champ("financement.tauxAnnuel", { echelle: 100, pas: 0.1, s: "%", l: 80 })) +
+        L("Durée de l'opération", champ("financement.dureeMois", { pas: 1, s: "mois", l: 80 })) + L("Frais de dossier et garantie", champ("financement.fraisDossier")) +
+        '<tr><td>Frais financiers<div class="petit doux">Emprunt × taux × durée + frais de dossier</div></td><td class="n" data-r="ff"></td></tr>' +
+        L("GFA si VEFR", champ("gfa"), "≈ 1 % des travaux") + L("Assurance dommages-ouvrage", champ("assuranceDO"), "≈ 2 % des travaux") +
+        L("Honoraires de vente (TTC)", champ("honorairesVente")) + L("Apport en fonds propres", champ("apport"), "Pour le rendement des fonds propres") +
+      "</tbody></table></div></details>" +
+      '<details open><summary><span>Recettes · ventes</span><span class="num" data-r="ca"></span></summary><div class="pile">' +
+        '<div class="ligne"><label class="c">Scénario de revente<select data-p="scenario" data-t="txt"><option value="down">Bas</option><option value="moyen">Moyen</option><option value="top">Haut</option></select></label>' + refPerso +
+        '<button class="btn" id="prefill">Pré-remplir avec les quartiles DVF</button></div>' +
+        '<div class="defile"><table><thead><tr><th>Lot</th><th class="n">Surface</th><th class="n">Prix bas</th><th class="n">Prix haut</th><th class="n">Moyen</th><th></th></tr></thead><tbody>' + lots + "</tbody></table></div>" +
+        '<div><button class="btn" id="ajout-lot">Ajouter un lot</button></div></div></details>' +
+    "</div>" +
+    '<div class="collant pile"><div class="carte pile" id="resultat"></div></div></div>';
+  }
+
+  function refStats() {
+    var e = etats[courant.id];
+    var b = courant.perso ? biens.filter(function (x) { return x.id === e.ref; })[0] : courant;
+    return courant.perso ? b.commune_stats.global : b.comparables.stats;
+  }
+
+  // ---------- Calcul et affichage des résultats ----------
+  function maj() {
+    var e = etats[courant.id], h = e.h, r = M.calculerBilan(h);
+    var remise = e.prixAffiche > 0 ? 1 - h.prixAcquisition / e.prixAffiche : 0;
+    var sl = document.getElementById("remise"); if (sl && document.activeElement !== sl) sl.value = Math.max(0, Math.min(0.35, remise));
+    document.getElementById("remise-v").textContent = (remise >= 0 ? "− " : "+ ") + pct(Math.abs(remise));
+    var t = function (k, v) { var el = document.querySelector('[data-r="' + k + '"]'); if (el) el.textContent = v; };
+    t("foncier", eur(r.foncier.total.ttc)); t("technique", eur(r.technique.total.ttc)); t("aleas", eur(r.technique.aleas.ttc));
+    t("frais", eur(r.honorairesDivers.ttc + r.fraisDivers.total + r.honorairesVente.ttc)); t("ff", eur(r.fraisDivers.financiers)); t("ca", eur(r.recettes.chiffreAffaires));
+    h.lots.forEach(function (l, i) { var el = document.querySelector('[data-moy="' + i + '"]'); if (el) el.textContent = eur(r.recettes.lots[i].prix && h.scenario === "moyen" ? r.recettes.lots[i].prix : ((l.prixDown || 0) + (l.prixTop || 0)) / ((l.prixDown != null) + (l.prixTop != null) || 1)); });
+    var bas = document.getElementById("bascule"); bas.hidden = !r.bascule.immeubleNeuf; bas.textContent = "Bascule en « immeuble neuf » (" + r.bascule.raison + ") : la TVA s'applique sur le prix de vente total.";
+
+    var c = cls(r.margeSurCA, e.margeCible);
+    document.getElementById("resultat").innerHTML =
+      '<div class="entete"><h2>Rentabilité</h2><span class="puce ' + c + '">' + pct(r.margeSurCA) + " du CA</span></div>" +
+      '<div class="g3" style="grid-template-columns:1fr 1fr">' +
+        '<div class="kpi"><div class="v ' + c + '">' + eur(r.beneficeBrut) + '</div><div class="l">Bénéfice brut</div></div>' +
+        '<div class="kpi"><div class="v">' + eur(r.beneficeNet) + '</div><div class="l">Bénéfice net après IS</div></div>' +
+        '<div class="kpi"><div class="v">' + pct(r.margeSurPrixRevient) + '</div><div class="l">Marge sur prix de revient</div></div>' +
+        '<div class="kpi"><div class="v">' + (r.rendementFondsPropres == null ? "—" : pct(r.rendementFondsPropres)) + '</div><div class="l">Rendement des fonds propres</div></div></div>' +
+      '<label class="c">Régime de TVA<select id="regime"><option value="marge">TVA sur marge</option><option value="exoneration">Exonération de TVA</option><option value="total">TVA sur prix total</option></select></label>' +
+      (r.regimeApplique !== h.regimeTVA ? '<p class="alerte">Régime imposé : TVA sur prix total (bascule immeuble neuf).</p>' : "") +
+      "<table><tbody>" +
+        '<tr><td>Chiffre d\'affaires</td><td class="n">' + eur(r.recettes.chiffreAffaires) + "</td></tr>" +
+        '<tr><td>Prix de revient du foncier</td><td class="n">' + eur(r.foncier.total.ttc) + "</td></tr>" +
+        '<tr><td>Marge brute TTC</td><td class="n">' + eur(r.margeBruteTTC) + "</td></tr>" +
+        (r.regimeApplique === "marge" ? '<tr><td>TVA sur marge</td><td class="n">' + eur(r.tvaSurMarge) + "</td></tr>" : "") +
+        (r.regimeApplique === "total" ? '<tr><td>TVA sur prix total</td><td class="n">' + eur(r.tvaPrixTotal) + "</td></tr>" : "") +
+        '<tr><td>TVA récupérable</td><td class="n">' + eur(r.tvaRecuperable) + '</td></tr><tr><td>TVA due</td><td class="n">' + eur(r.tvaDue) + "</td></tr>" +
+        '<tr><td>Coût technique</td><td class="n">− ' + eur(r.technique.total.ttc) + "</td></tr>" +
+        '<tr><td>Honoraires divers</td><td class="n">− ' + eur(r.honorairesDivers.ttc) + "</td></tr>" +
+        '<tr><td>Frais divers</td><td class="n">− ' + eur(r.fraisDivers.total) + "</td></tr>" +
+        '<tr><td>Honoraires de vente</td><td class="n">− ' + eur(r.honorairesVente.ttc) + "</td></tr>" +
+        '<tr class="tot"><td>Bénéfice brut</td><td class="n">' + eur(r.beneficeBrut) + "</td></tr>" +
+        '<tr><td>IS 15 % puis 25 %</td><td class="n">− ' + eur(r.impot) + "</td></tr>" +
+        '<tr class="tot"><td>Bénéfice net</td><td class="n">' + eur(r.beneficeNet) + "</td></tr>" +
+      "</tbody></table>" +
+      '<table class="petit"><tbody><tr><td>Prix d\'achat au m² (Carrez)</td><td class="n">' + m2(r.ratios.prixAchatM2Carrez) + '</td></tr><tr><td>Coût travaux HT au m²</td><td class="n">' + m2(r.ratios.coutTravauxHTM2Carrez) + '</td></tr><tr><td>Prix de vente au m²</td><td class="n">' + m2(r.ratios.prixVenteM2Carrez) + "</td></tr></tbody></table>";
+    document.getElementById("regime").value = h.regimeTVA;
+
+    var sc = [["down", "bas"], ["moyen", "moyen"], ["top", "haut"]];
+    var pm = sc.map(function (s) { return M.prixMaxPourMarge(h, e.margeCible, s[0]); });
+    var pmRP = sc.map(function (s) { return M.prixMaxRP(h, e.rp, e.margeCible, s[0]); });
+    var html = '<div class="defile"><table><thead><tr><th>Pour ' + pct(e.margeCible, 0) + " de marge</th>" + sc.map(function (s) { return '<th class="n">Revente ' + s[1] + "</th>"; }).join("") + "</tr></thead><tbody>" +
+      '<tr><td>Prix d\'achat maximum · marchand de biens</td>' + pm.map(function (p) { return '<td class="n"><strong>' + (p == null ? "inatteignable" : eur(p)) + "</strong></td>"; }).join("") + "</tr>" +
+      '<tr><td>Prix d\'achat maximum · résidence principale</td>' + pmRP.map(function (p) { return '<td class="n">' + (p == null ? "inatteignable" : eur(p)) + "</td>"; }).join("") + "</tr>" +
+      (e.prixAffiche > 0 ? "<tr><td>Remise nécessaire · marchand de biens</td>" + pm.map(function (p) { return '<td class="n">' + (p == null ? "—" : p >= e.prixAffiche ? "aucune" : pct(1 - p / e.prixAffiche)) + "</td>"; }).join("") + "</tr>" : "") + "</tbody></table></div>";
+    if (e.prixAffiche > 0) {
+      var sens = M.sensibilite(h, e.prixAffiche, [0, 0.05, 0.1, 0.15, 0.2, 0.25]);
+      html += '<div class="defile"><table><thead><tr><th>Remise</th><th class="n">Prix d\'achat</th>' + sc.map(function (s) { return '<th class="n">Marge MdB · revente ' + s[1] + "</th>"; }).join("") + '<th class="n">Résidence principale</th></tr></thead><tbody>' +
+        sens.map(function (l) { return "<tr><td>− " + pct(l[0].remise, 0) + '</td><td class="n">' + eur(l[0].prix) + "</td>" + l.map(function (x) { return '<td class="n ' + cls(x.margeSurCA, e.margeCible) + '" title="Bénéfice net ' + eur(x.beneficeNet) + '">' + pct(x.margeSurCA) + "</td>"; }).join("") + (function () { var q = M.calculerResidencePrincipale(Object.assign({}, h, { prixAcquisition: l[0].prix }), e.rp); return '<td class="n ' + cls(q.margeSurRevente, e.margeCible) + '" title="Gain net ' + eur(q.gainNet) + '">' + pct(q.margeSurRevente) + "</td>"; })() + "</tr>"; }).join("") + "</tbody></table></div>" +
+        '<p class="petit doux">Marge = bénéfice brut / CA pour la société ; gain net / prix de revente pour la résidence principale (scénario de revente actuel).</p>';
+    }
+    document.getElementById("nego").innerHTML = html;
+    var q = M.calculerResidencePrincipale(h, e.rp);
+    var lig = function (lib, a, b2, gras) { return "<tr" + (gras ? ' class="tot"' : "") + "><td>" + lib + '</td><td class="n">' + a + '</td><td class="n">' + b2 + "</td></tr>"; };
+    var gagnant = q.gainNet > r.beneficeNet ? "rp" : "mdb";
+    var ecart = Math.abs(q.gainNet - r.beneficeNet);
+    document.getElementById("comparatif").innerHTML =
+      '<p><span class="puce ' + (gagnant === "rp" ? "bon" : "moyen") + '">' + (gagnant === "rp" ? "Résidence principale" : "Marchand de biens") + " plus rentable de " + eur(ecart) + "</span> en net, sur " + q.dureeMois + " mois" + (q.loyerEconomise ? " (hors loyer économisé)" : "") + ".</p>" +
+      '<div class="defile"><table><thead><tr><th></th><th class="n">Marchand de biens (société)</th><th class="n">Résidence principale (nom propre)</th></tr></thead><tbody>' +
+      lig("Prix d'achat", eur(h.prixAcquisition), eur(q.prixAcquisition)) +
+      lig("Frais de notaire", eur(r.foncier.notaire.ttc) + " (" + pct(h.tauxNotaire, 0) + ")", eur(q.notaire) + " (" + pct(e.rp.tauxNotaire) + ")") +
+      lig("Travaux et aléas (TTC)", eur(r.technique.total.ttc), eur(q.travaux)) +
+      lig("Frais financiers", eur(r.fraisDivers.financiers), eur(q.financement.total) + '<div class="petit doux">dont assurance ' + eur(q.financement.assurance) + "</div>") +
+      lig("Honoraires gestion, compta, justice, GFA, DO", eur(r.honorairesDivers.ttc + r.fraisDivers.gfa + r.fraisDivers.assuranceDO), "—") +
+      lig("Charges pendant la détention", "—", eur(q.charges)) +
+      lig("Frais de revente", eur(r.honorairesVente.ttc), eur(q.fraisVente)) +
+      lig("Prix de revente", eur(r.recettes.chiffreAffaires), eur(q.revente)) +
+      lig("TVA due", eur(r.tvaDue), "0 €") +
+      lig("Bénéfice ou gain avant impôt", eur(r.beneficeBrut), eur(q.gainNet)) +
+      lig("Impôt", eur(r.impot) + '<div class="petit doux">IS 15 % / 25 %</div>', '0 €<div class="petit doux">plus-value exonérée</div>') +
+      lig("Gain net", eur(r.beneficeNet), eur(q.gainNet), true) +
+      (q.loyerEconomise ? lig("Gain net avec loyer économisé", "—", eur(q.gainAvecLoyer)) : "") +
+      lig("Marge", pct(r.margeSurCA) + " du CA", pct(q.margeSurRevente) + " de la revente") +
+      lig("Rendement de l'apport", r.rendementFondsPropres == null ? "—" : pct(r.rendementFondsPropres), q.rendementApport == null ? "—" : pct(q.rendementApport)) +
+      lig("Gain net par mois", q.dureeMois ? eur(r.beneficeNet / q.dureeMois) : "—", q.gainParMois == null ? "—" : eur(q.gainParMois)) +
+      "</tbody></table></div>" +
+      '<p class="petit doux">Côté société, le bénéfice net reste dans la société : le sortir en dividendes coûte en plus le prélèvement forfaitaire de 30 %.</p>';
+    document.getElementById("histo").innerHTML = e.historique.length ? "<table><tbody>" + e.historique.map(function (o, i) {
+      return "<tr><td>" + new Date(o.date).toLocaleDateString("fr-FR") + "</td><td>" + ({ offre: "Mon offre", "contre-offre": "Contre-offre", accord: "Accord" })[o.type] + '</td><td class="n">' + eur(o.prix) + '</td><td class="n"><span class="puce ' + cls(o.margeSurCA, e.margeCible) + '">' + pct(o.margeSurCA) + '</span></td><td class="doux">' + esc(o.note || "") + '</td><td><button class="lien" data-retire-offre="' + i + '">Retirer</button></td></tr>';
+    }).join("") + "</tbody></table>" : '<p class="petit doux">Aucune offre notée.</p>';
+  }
+
+  function sauverHisto() { if (!courant.perso) lsSet("madrimmo.demo.histo." + courant.id, etats[courant.id].historique); }
+
+  function afficher(id) {
+    courant = id === "perso" ? PERSO : biens.filter(function (b) { return b.id === id; })[0];
+    if (!etats[id]) etats[id] = etatInitial(courant);
+    var app = document.getElementById("app");
+    var b = courant;
+    var titre = b.perso
+      ? '<div class="carte pile"><h1>Ton bien</h1><p class="doux">Saisis prix, surfaces, travaux et lots. Pour les prix de revente, choisis une commune de référence parmi les biens chargés, ou saisis tes propres prix.</p></div>'
+      : '<div class="carte pile"><div class="entete"><h1>' + esc(b.titre) + "</h1>" + (b.dpeAnnonce ? '<span class="puce moyen">DPE annoncé ' + esc(b.dpeAnnonce) + "</span>" : '<span class="puce">DPE non communiqué</span>') + "</div>" +
+        '<div class="doux">' + esc(b.adresseComplete) + (b.precision ? " · " + esc(b.precision) : "") + " · " + (b.prixEstime ? "prix de départ " : "prix affiché ") + eur(b.prix) + " · " + b.surface + " m²" + (b.terrain ? " sur " + b.terrain + " m² de terrain" : "") + "</div>" +
+        (b.prixEstime ? '<p class="alerte">Prix non communiqué : le prix de départ est la valeur médiane des ventes DVF comparables (' + m2(b.comparables.stats.mediane) + " × " + b.surface + " m²). Remplace-le par le prix réel dans « Prix affiché ».</p>" : "") + "</div>";
+    app.innerHTML = titre + (b.perso ? "" : fiche(b)) + "<h1>Bilan prévisionnel</h1>" + formulaire();
+    document.querySelector('[data-p="scenario"]').value = etats[id].h.scenario;
+    maj();
+  }
+
+  // ---------- Événements ----------
+  var app = document.getElementById("app");
+  app.addEventListener("input", function (ev) {
+    var t = ev.target, e = etats[courant.id];
+    if (t.id === "remise") { e.h.prixAcquisition = Math.round(e.prixAffiche * (1 - Number(t.value))); var f = document.getElementById("f-prixAcquisition"); if (f) f.value = e.h.prixAcquisition; return maj(); }
+    if (t.id === "affiche") { var rem = e.prixAffiche > 0 ? 1 - e.h.prixAcquisition / e.prixAffiche : 0; e.prixAffiche = Number(t.value) || 0; e.h.prixAcquisition = Math.round(e.prixAffiche * (1 - Math.max(0, rem))); document.getElementById("f-prixAcquisition").value = e.h.prixAcquisition; return maj(); }
+    if (t.id === "cible") { e.margeCible = (Number(t.value) || 0) / 100; return maj(); }
+    if (t.dataset.rp) { e.rp[t.dataset.rp] = (Number(t.value) || 0) / (t.dataset.e ? Number(t.dataset.e) : 1); return maj(); }
+    if (t.dataset.p) {
+      var v = t.dataset.t === "txt" ? t.value : (t.value === "" ? (/lots\.\d+\.prix/.test(t.dataset.p) ? null : 0) : Number(t.value) / (t.dataset.e ? Number(t.dataset.e) : 1));
+      set(e.h, t.dataset.p, v); maj();
+    }
+  });
+  app.addEventListener("change", function (ev) {
+    var t = ev.target, e = etats[courant.id];
+    if (t.id === "regime") { e.h.regimeTVA = t.value; maj(); }
+    else if (t.id === "ref") { e.ref = t.value; }
+    else if (t.tagName === "SELECT" && t.dataset.p) { set(e.h, t.dataset.p, t.dataset.t === "txt" ? t.value : Number(t.value)); maj(); }
+  });
+  app.addEventListener("click", function (ev) {
+    var t = ev.target, e = etats[courant.id];
+    if (t.id === "noter") {
+      var r = M.calculerBilan(e.h);
+      e.historique.unshift({ date: new Date().toISOString(), type: document.getElementById("type-offre").value, prix: e.h.prixAcquisition, margeSurCA: r.margeSurCA, beneficeNet: r.beneficeNet, note: document.getElementById("note").value });
+      document.getElementById("note").value = ""; sauverHisto(); maj();
+    } else if (t.dataset.retireOffre != null) { e.historique.splice(Number(t.dataset.retireOffre), 1); sauverHisto(); maj(); }
+    else if (t.id === "ajout-lot") { e.h.lots.push({ libelle: "Lot " + (e.h.lots.length + 1), surface: 0, prixDown: null, prixTop: null, tva: 0 }); afficher(courant.id); }
+    else if (t.dataset.retire != null) { e.h.lots.splice(Number(t.dataset.retire), 1); afficher(courant.id); }
+    else if (t.id === "prefill") {
+      var s = refStats();
+      e.h.lots.forEach(function (l) { if (l.surface) { l.prixDown = Math.round(s.p25 * l.surface / 1000) * 1000; l.prixTop = Math.round(s.p75 * l.surface / 1000) * 1000; } });
+      afficher(courant.id);
+    }
+  });
+
+  var choix = document.getElementById("choix");
+  choix.innerHTML = biens.map(function (b) { return '<option value="' + b.id + '">' + esc(b.titre) + "</option>"; }).join("") + '<option value="perso">Ton bien (saisie libre)</option>';
+  choix.addEventListener("change", function () { afficher(choix.value); window.scrollTo(0, 0); });
+  document.getElementById("info").textContent = "Données publiques récupérées le " + new Date(DATA.date).toLocaleDateString("fr-FR") + " · la version installée les met à jour en temps réel";
+  afficher(biens[0].id);
+})();
+</script>
