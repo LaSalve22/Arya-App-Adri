@@ -60,3 +60,20 @@ export const LIBELLES_POSTES: Record<string, string> = {
   electricite: "Électricité",
   planchers: "Planchers non porteurs",
 };
+
+type Profond<T> = { [K in keyof T]?: T[K] extends (infer U)[] ? U[] : T[K] extends object | null ? Profond<NonNullable<T[K]>> | T[K] : T[K] };
+export type HypothesesPartielles = Profond<Hypotheses>;
+
+function fusion(base: unknown, ajout: unknown): unknown {
+  if (ajout === undefined) return base;
+  if (Array.isArray(ajout) || ajout === null || typeof ajout !== "object") return ajout;
+  if (base === null || typeof base !== "object" || Array.isArray(base)) return ajout;
+  const out: Record<string, unknown> = { ...(base as Record<string, unknown>) };
+  for (const [k, v] of Object.entries(ajout as Record<string, unknown>)) out[k] = fusion(out[k], v);
+  return out;
+}
+
+/** Complète des hypothèses partielles avec les valeurs par défaut (fusion profonde, les listes sont remplacées). */
+export function hypothesesDepuisPartiel(p: HypothesesPartielles | undefined): Hypotheses {
+  return fusion(hypothesesParDefaut(), p ?? {}) as Hypotheses;
+}

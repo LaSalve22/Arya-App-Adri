@@ -19,9 +19,23 @@ Tests du moteur de calcul : `npm test`.
 
 ## Mettre en ligne (Vercel, gratuit)
 
-1. Créer un compte sur vercel.com et importer le dépôt GitHub.
-2. Dans le réglage « Root Directory », indiquer `app`.
-3. Déployer. Aucune clé n'est nécessaire : toutes les sources sont publiques.
+1. Créer un compte sur vercel.com (connexion avec GitHub) et importer le dépôt `Arya-App-Adri`.
+2. Dans « Root Directory », indiquer `app`.
+3. Dans « Environment Variables », ajouter `MADRIMMO_JETON` avec une longue valeur aléatoire (au moins 16 caractères, gardée secrète).
+4. Déployer. Aucune clé d'API n'est nécessaire : toutes les sources sont publiques.
+
+## Connecteur Claude (l'IA de ton abonnement, sans coût en plus)
+
+L'appli expose un serveur MCP à l'adresse `https://<ton-projet>.vercel.app/api/mcp/<MADRIMMO_JETON>`.
+
+Dans Claude (web, bureau ou mobile) : Personnaliser → Connecteurs → « Ajouter un connecteur personnalisé », puis coller cette adresse.
+Chaque personne l'ajoute sur son propre compte (offre gratuite : un seul connecteur personnalisé).
+
+Outils proposés à Claude : `chercher_adresse`, `fiche_bien`, `comparables_dvf`, `prix_secteur`, `analyser_annonce`,
+`calculer_bilan`, `negociation`, `comparer_residence_principale`, `lien_appli`.
+
+Exemple de demande : « Analyse le 50 rue de l'Ancien Courrier à Narbonne, appartement de 69 m² affiché 110 000 €, 25 000 € de travaux.
+Donne-moi le prix maximum pour 15 % de marge et compare avec un achat en résidence principale. »
 
 ## Ce que fait l'outil
 
@@ -31,6 +45,7 @@ Tests du moteur de calcul : `npm test`.
 - **Bilan prévisionnel** : foncier, budget travaux poste par poste (avec la règle de bascule en « immeuble neuf »),
   honoraires, frais financiers, recettes par lot (prix bas, moyen et haut), TVA sur marge, exonération ou TVA sur le total, IS 15 % / 25 %.
 - **Négociation** : curseur de remise, prix d'achat maximum pour une marge cible, tableau de sensibilité, historique des offres.
+- **Comparatif résidence principale** : le même bien acheté en nom propre, habité puis revendu, plus-value exonérée (pas de TVA ni d'IS, notaire de droit commun).
 - **Projets** enregistrés dans le navigateur.
 
 ## Sources
@@ -50,5 +65,6 @@ Tests du moteur de calcul : `npm test`.
 - `lib/bilan/` : moteur de calcul (fonctions pures) et tests de fidélité à l'Excel (`scripts/excel-fidelite.md`).
 - `lib/sources/` : clients des services publics, avec cache.
 - `lib/annonce/parse.ts` : lecture d'une annonce.
-- `lib/agent/outils.ts` : outils prêts pour brancher un agent IA (clé API Claude nécessaire).
+- `lib/mcp/serveur.ts` et `app/api/mcp/[jeton]/route.ts` : le connecteur Claude.
+- `demo/` : page autonome de test (données figées), construite par `scripts/build-demo.mjs`.
 - `app/` : pages (recherche, fiche du bien, projets) et routes API.
