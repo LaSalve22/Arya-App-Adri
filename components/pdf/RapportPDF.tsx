@@ -134,7 +134,7 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
           </View>
           <View style={s.col}>
             <Text style={s.h2}>Points de vigilance</Text>
-            {vigilance.length ? vigilance.slice(0, 8).map((v) => <Text key={v} style={{ marginBottom: 2 }}>• {v}</Text>) : <Text>Rien à signaler.</Text>}
+            {vigilance.length ? vigilance.slice(0, 8).map((v) => <Text key={v} style={{ marginBottom: 2 }}>• {esp(v)}</Text>) : <Text>Rien à signaler.</Text>}
           </View>
         </View>
         <Pied />

@@ -134,3 +134,5 @@ details.bloc > div { padding: 0 14px 14px; }
 @media (max-width: 640px) { .bandeau { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
 .verdict { padding: 14px 16px; border-radius: 10px; font-size: 15px; }
 .verdict.bon { background: var(--bon-fond); } .verdict.moyen { background: var(--moyen-fond); } .verdict.mauvais { background: var(--mauvais-fond); }
+.grille2 > *, .grille3 > *, .pile > * { min-width: 0; }
+@media (max-width: 640px) { table.t td.n { white-space: normal; overflow-wrap: anywhere; } }

@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import dynamic from "next/dynamic";
-import { quantile, type Vente } from "@/lib/sources/dvf";
+import type { Vente } from "@/lib/sources/dvf";
+import { quantile } from "@/lib/stats";
 import { eur, m2 } from "@/lib/format";
 import { Champ, Num } from "./ui";
 import type { PropsOnglet } from "./types";

@@ -31,7 +31,7 @@ Dans Claude (web, bureau ou mobile) : Personnaliser → Connecteurs → « Ajout
 Chaque personne l'ajoute sur son propre compte (offre gratuite : un seul connecteur personnalisé).
 
 Outils proposés à Claude : `chercher_adresse`, `fiche_bien`, `comparables_dvf`, `prix_secteur`, `analyser_annonce`,
-`calculer_bilan`, `negociation`, `comparer_residence_principale`, `lien_appli`.
+`calculer_bilan`, `negociation`, `comparer_residence_principale`, `plan_financement`, `lien_appli`.
 
 Exemple de demande : « Analyse le 50 rue de l'Ancien Courrier à Narbonne, appartement de 69 m² affiché 110 000 €, 25 000 € de travaux.
 Donne-moi le prix maximum pour 15 % de marge et compare avec un achat en résidence principale. »
@@ -44,6 +44,8 @@ Donne-moi le prix maximum pour 15 % de marge et compare avec un achat en réside
 - **Bilan prévisionnel** : foncier, budget travaux poste par poste (avec la règle de bascule en « immeuble neuf »),
   honoraires, frais financiers, recettes par lot (prix bas, moyen et haut), TVA sur marge, exonération ou TVA sur le total, IS 15 % / 25 %.
 - **Négociation** : curseur de remise, prix d'achat maximum pour une marge cible, tableau de sensibilité, historique des offres.
+- **Analyse en 13 onglets** : recherche, nature du bien, ventes DVF et DPE, biens similaires vendus, profil MdB (SAS / SARL, sortie en dividendes), résidence principale, comparatif, BP avec travaux, frais financiers, mode de financement (fonds propres, comptes courants, prêt ou ligne de crédit, levée obligataire, associé en participation), coûts techniques, frais de vente, récapitulatif.
+- **PDF récapitulatif** (4 pages) pour la banque ou les investisseurs, depuis l'onglet Récapitulatif.
 - **Comparatif résidence principale** : le même bien acheté en nom propre, habité puis revendu, plus-value exonérée (pas de TVA ni d'IS, notaire de droit commun).
 - **Projets** enregistrés dans le navigateur.
 
