@@ -2,3 +2,4 @@
 export { calculerBilan } from "../lib/bilan/calcul";
 export { prixMaxPourMarge, sensibilite } from "../lib/bilan/nego";
 export { hypothesesParDefaut, LIBELLES_POSTES } from "../lib/bilan/defaut";
+export { calculerResidencePrincipale, optionsRPParDefaut, prixMaxRP } from "../lib/bilan/residence";
