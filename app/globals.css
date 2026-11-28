@@ -23,12 +23,13 @@ body {
   margin: 0;
   background: var(--fond);
   color: var(--texte);
-  font: 14px/1.5 -apple-system, "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+  font: 14px/1.5 Inter, -apple-system, "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
 }
 a { color: var(--bleu); }
 h1, h2, h3 { margin: 0; line-height: 1.2; }
-h1 { font-size: 22px; }
+/* Charte : Cormorant Garamond pour le logo et les titres de page, Inter pour tout le reste. */
+h1 { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; font-size: 30px; letter-spacing: .01em; font-variant-numeric: lining-nums; }
 h2 { font-size: 16px; }
 h3 { font-size: 14px; }
 .num { font-variant-numeric: tabular-nums; }
@@ -39,8 +40,8 @@ header.barre {
   background: #000; color: #fff; padding: 12px max(16px, env(safe-area-inset-left)); border-bottom: 1px solid var(--trait);
   display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 1000;
 }
-header.barre .logo { font-weight: 300; letter-spacing: .32em; font-size: 16px; color: #fff; text-decoration: none; }
-header.barre .logo span { color: #fff; font-weight: 700; }
+header.barre .logo { display: flex; align-items: center; gap: 10px; color: #fff; text-decoration: none; }
+header.barre .logo span { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; font-size: 21px; letter-spacing: .16em; line-height: 1; }
 header.barre nav { display: flex; gap: 16px; }
 header.barre nav a { color: #9a9a9a; text-decoration: none; font-weight: 500; letter-spacing: .04em; }
 header.barre nav a:hover { color: #fff; }
