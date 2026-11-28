@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MADRIMMO · Guide d'utilisation</title>
+<!-- Source du guide. PDF : node scripts/generer-guide.mjs -->
+<style>
+@font-face { font-family: "Cormorant Garamond"; font-weight: 500; src: url("../../public/fonts/cormorant-garamond-latin-500-normal.woff") format("woff"); }
+@font-face { font-family: "Cormorant Garamond"; font-weight: 600; src: url("../../public/fonts/cormorant-garamond-latin-600-normal.woff") format("woff"); }
+@font-face { font-family: "Inter"; font-weight: 400; src: url("../../public/fonts/inter-latin-400-normal.woff") format("woff"); }
+@font-face { font-family: "Inter"; font-weight: 600; src: url("../../public/fonts/inter-latin-600-normal.woff") format("woff"); }
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: Inter, sans-serif; font-size: 10pt; line-height: 1.55; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.page { width: 210mm; height: 297mm; padding: 20mm 18mm 20mm; position: relative; overflow: hidden; page-break-after: always; break-after: page; display: flex; flex-direction: column; gap: 5mm; }
+.page:last-child { page-break-after: auto; break-after: auto; }
+.noir { background: #000; color: #f5f5f5; }
+.blanc { background: #fff; }
+h1, h2, h3 { margin: 0; font-weight: 500; }
+h1 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 30pt; line-height: 1.08; font-variant-numeric: lining-nums; }
+h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 16pt; line-height: 1.2; margin-top: 2mm; }
+h3 { font-size: 10pt; font-weight: 600; }
+p { margin: 0; }
+ul, ol { margin: 0; padding-left: 5mm; display: grid; gap: 1.2mm; }
+.sur { font-size: 7.5pt; letter-spacing: .26em; text-transform: uppercase; color: #6b6b6b; }
+.noir .sur { color: #a3a3a3; }
+.doux { color: #555; }
+.noir .doux { color: #bdbdbd; }
+.num-etape { font-family: "Cormorant Garamond", serif; font-size: 13pt; color: #8c8c8c; margin-right: 2mm; }
+.capture { width: 100%; display: block; border: 0.6pt solid #cfcfcf; border-radius: 2mm; }
+.capture.petite { width: 100%; }
+.g2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6mm; }
+.g3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5mm; }
+.astuce { border-left: 1.2pt solid #111; padding: 2mm 0 2mm 4mm; font-size: 9pt; background: #f4f4f4; }
+.astuce strong { display: block; font-size: 7.5pt; letter-spacing: .2em; text-transform: uppercase; margin-bottom: 1mm; }
+table { width: 100%; border-collapse: collapse; font-size: 9pt; }
+td, th { padding: 1.6mm 0; border-bottom: 0.5pt solid #e3e3e3; text-align: left; vertical-align: top; }
+th { font-size: 7.5pt; letter-spacing: .14em; text-transform: uppercase; color: #6b6b6b; font-weight: 600; }
+td.n { text-align: right; white-space: nowrap; }
+.folio { position: absolute; left: 18mm; right: 18mm; bottom: 9mm; display: flex; justify-content: space-between; font-size: 7pt; letter-spacing: .18em; text-transform: uppercase; color: #8c8c8c; }
+.bouton { display: inline-block; border: 0.6pt solid #111; border-radius: 1.5mm; padding: 0 1.5mm; font-size: 8.5pt; font-weight: 600; white-space: nowrap; }
+.mobile { width: 100%; border-radius: 4mm; border: 0.6pt solid #cfcfcf; display: block; }
+kbd { font-family: Inter; font-size: 8.5pt; border: 0.6pt solid #999; border-radius: 1mm; padding: 0 1mm; }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="chm" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="205" y2="160">
+      <stop offset="0" stop-color="#6e6e6e"/><stop offset=".35" stop-color="#f7f7f7"/><stop offset=".55" stop-color="#8a8a8a"/><stop offset=".8" stop-color="#e8e8e8"/><stop offset="1" stop-color="#9a9a9a"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- Couverture -->
+<section class="page noir" style="justify-content: space-between; align-items: center; padding-top: 72mm; padding-bottom: 26mm; text-align: center">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 12mm">
+    <svg width="210" height="164" viewBox="0 0 205 160" role="img" aria-label="Monogramme MADRIMMO"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="url(#chm)" stroke-width="13" stroke-linejoin="miter" stroke-miterlimit="10" stroke-linecap="square"/></svg>
+    <div style="display: flex; flex-direction: column; gap: 4mm; align-items: center">
+      <span style="font-family: 'Cormorant Garamond', serif; font-weight: 600; font-size: 32pt; letter-spacing: .3em; margin-right: -.3em">MADRIMMO</span>
+      <span class="sur">Guide d'utilisation</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 2mm; align-items: center">
+    <span style="font-family: 'Cormorant Garamond', serif; font-size: 16pt">Analyser, chiffrer et financer une opération de marchand de biens en Occitanie</span>
+    <span class="doux" style="font-size: 8.5pt">Édition de novembre 2026</span>
+  </div>
+</section>
+
+<!-- Sommaire -->
+<section class="page blanc">
+  <span class="sur">Sommaire</span>
+  <h1>Le guide en un coup d'œil</h1>
+  <div class="g2" style="margin-top: 4mm">
+    <table>
+      <tr><td>Bienvenue dans MADRIMMO</td><td class="n">03</td></tr>
+      <tr><td>Installer l'appli sur téléphone et PC</td><td class="n">04</td></tr>
+      <tr><td>1 · Rechercher un bien</td><td class="n">05</td></tr>
+      <tr><td>2 · Nature du bien et prix</td><td class="n">06</td></tr>
+      <tr><td>3-4 · Marché, ventes DVF et biens similaires</td><td class="n">07</td></tr>
+      <tr><td>5 · Travaux : décrire et chiffrer vite</td><td class="n">08</td></tr>
+      <tr><td>5 · Travaux : pièces et devis détaillé</td><td class="n">09</td></tr>
+      <tr><td>5 · Travaux : lots, TVA et démarches</td><td class="n">10</td></tr>
+    </table>
+    <table>
+      <tr><td>6 · BP et négociation</td><td class="n">11</td></tr>
+      <tr><td>7 · Financement</td><td class="n">12</td></tr>
+      <tr><td>8 · Coûts techniques, frais de vente, profil</td><td class="n">13</td></tr>
+      <tr><td>9 · Résidence principale et comparatif</td><td class="n">14</td></tr>
+      <tr><td>10 · Récapitulatif et dossier PDF</td><td class="n">15</td></tr>
+      <tr><td>11 · Projets enregistrés</td><td class="n">16</td></tr>
+      <tr><td>Claude et les photos d'annonce</td><td class="n">17</td></tr>
+      <tr><td>Règles de calcul et FAQ</td><td class="n">18</td></tr>
+    </table>
+  </div>
+  <div class="astuce" style="margin-top: auto"><strong>Exemple suivi dans ce guide</strong>Un T3 de 65 m² au 12 rue de la Loge à Montpellier, affiché 210 000 €, négocié 145 000 €, à rafraîchir avec cuisine et salle de bain à refaire, revendu 240 000 €. Les chiffres des captures sont ceux calculés par l'appli.</div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>02</span></div>
+</section>
+
+<!-- Bienvenue -->
+<section class="page noir">
+  <span class="sur">Bienvenue</span>
+  <h1>Une seule appli,<br>de l'annonce au dossier bancaire</h1>
+  <p class="doux" style="font-size: 11pt; max-width: 155mm">MADRIMMO interroge en direct les données publiques (cadastre, plan local d'urbanisme, ventes réelles DVF, Géorisques, diagnostics de performance énergétique), chiffre les travaux, calcule le bilan prévisionnel au format marchand de biens et produit un dossier PDF pour la banque ou les investisseurs.</p>
+  <div style="margin-top: 6mm; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 3mm 10mm; font-size: 9.5pt">
+    <p><span class="num-etape">01</span><strong>Recherche</strong> · adresse, parcelle, annonce, capture</p>
+    <p><span class="num-etape">08</span><strong>BP avec travaux</strong> · bilan et négociation</p>
+    <p><span class="num-etape">02</span><strong>Nature du bien</strong> · prix, cadastre, PLU, risques</p>
+    <p><span class="num-etape">09</span><strong>Travaux</strong> · dictée, forfaits, devis, TVA, démarches</p>
+    <p><span class="num-etape">03</span><strong>Ventes DVF et DPE</strong> · prix du secteur</p>
+    <p><span class="num-etape">10</span><strong>Frais financiers</strong> · coût du crédit</p>
+    <p><span class="num-etape">04</span><strong>Biens similaires</strong> · ventes comparables</p>
+    <p><span class="num-etape">11</span><strong>Mode de financement</strong> · fonds propres, crédit</p>
+    <p><span class="num-etape">05</span><strong>Profil MdB</strong> · SAS ou SARL, sortie</p>
+    <p><span class="num-etape">12</span><strong>Coûts techniques</strong> · en € ou en %</p>
+    <p><span class="num-etape">06</span><strong>Résidence principale</strong> · achat en nom propre</p>
+    <p><span class="num-etape">13</span><strong>Frais de vente</strong> · agence, diagnostics</p>
+    <p><span class="num-etape">07</span><strong>Comparatif</strong> · société ou nom propre</p>
+    <p><span class="num-etape">14</span><strong>Récapitulatif</strong> · synthèse et PDF</p>
+  </div>
+  <div style="margin-top: auto; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6mm; border-top: 0.6pt solid #2e2e2e; padding-top: 5mm; font-size: 9pt">
+    <div><strong>Le bandeau</strong><p class="doux">En haut des onglets de calcul : prix d'achat modifiable, marge, bénéfice, net associés, financement. Il suit chaque modification.</p></div>
+    <div><strong>Tout se recalcule</strong><p class="doux">Changer un prix, une surface ou un forfait met à jour tous les onglets en direct, sans bouton « calculer ».</p></div>
+    <div><strong>Occitanie</strong><p class="doux">Les 13 départements de la région : 09, 11, 12, 30, 31, 32, 34, 46, 48, 65, 66, 81, 82.</p></div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>03</span></div>
+</section>
+
+<!-- Installer -->
+<section class="page blanc">
+  <span class="sur">Avant de commencer</span>
+  <h1>Installer l'appli</h1>
+  <div style="display: grid; grid-template-columns: 1.3fr 1fr 1fr; gap: 6mm; align-items: start">
+    <div style="display: grid; gap: 4mm">
+      <h2>Sur téléphone</h2>
+      <p><strong>iPhone</strong> (Safari) : ouvrir l'adresse de l'appli, toucher Partager <kbd>⬆</kbd>, puis « Sur l'écran d'accueil » et « Ajouter ».</p>
+      <p><strong>Android</strong> (Chrome) : menu <kbd>⋮</kbd>, puis « Installer l'application » ou « Ajouter à l'écran d'accueil ».</p>
+      <p class="doux">L'icône au monogramme apparaît sur l'écran d'accueil ; l'appli s'ouvre en plein écran, sur fond noir.</p>
+      <h2>Sur ordinateur</h2>
+      <p>Ouvrir l'adresse dans le navigateur. À partir d'un écran large, les 14 étapes s'affichent dans un menu à gauche et le contenu occupe toute la largeur.</p>
+      <div class="astuce"><strong>Bon à savoir</strong>Une connexion internet est nécessaire : les données publiques sont chargées en direct. Les projets enregistrés restent dans le navigateur de l'appareil utilisé.</div>
+    </div>
+    <img class="mobile" src="captures/m-accueil.png" alt="Accueil sur téléphone">
+    <img class="mobile" src="captures/m-nature.png" alt="Analyse sur téléphone">
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>04</span></div>
+</section>
+
+<!-- Recherche -->
+<section class="page blanc">
+  <span class="sur">Étape 1</span>
+  <h1>Rechercher un bien</h1>
+  <img class="capture" src="captures/01-recherche.png" alt="Recherche par adresse">
+  <div class="g2">
+    <div style="display: grid; gap: 2mm">
+      <h3>Adresse ou parcelle</h3>
+      <p>Choisir le type de bien, la surface et le prix affiché, puis taper l'adresse et sélectionner une suggestion. Ou passer en « Par référence cadastrale » (commune, section, numéro).</p>
+      <h3>Coller une annonce</h3>
+      <p>Coller le <strong>texte</strong> de l'annonce (Leboncoin, SeLoger, agence), pas le lien. Prix, surface, pièces, DPE et ville sont repérés ; les mots-clés de travaux (« à rénover », « simple vitrage », « fosse septique »…) pré-remplissent l'onglet Travaux.</p>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <h3>Capture d'écran d'annonce</h3>
+      <p>Dans « Coller une annonce », importer une capture : le texte est lu directement sur l'appareil (aucun envoi sur internet), puis analysé comme une annonce collée.</p>
+      <h3>Recherche par zone</h3>
+      <p>Choisir une commune d'Occitanie pour voir les prix au m² et les dernières ventes, puis ouvrir l'une d'elles en analyse.</p>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>05</span></div>
+</section>
+
+<!-- Nature -->
+<section class="page blanc">
+  <span class="sur">Étape 2</span>
+  <h1>Nature du bien et prix</h1>
+  <img class="capture" src="captures/02-nature.png" alt="Onglet Nature du bien">
+  <div class="g2">
+    <div style="display: grid; gap: 2mm">
+      <h3>Le bloc Prix, en premier</h3>
+      <p>Prix affiché et prix d'achat visé : tous les calculs en dépendent. Le prix d'achat maximum pour la marge cible (15 % par défaut) s'affiche à côté. Le prix d'achat se modifie aussi dans le bandeau, depuis n'importe quel onglet de calcul.</p>
+      <h3>Caractéristiques</h3>
+      <p>Type, surface, terrain, pièces, étage, ascenseur, DPE, état. Les notes de visite se tapent ou se dictent (bouton micro).</p>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <h3>Données publiques</h3>
+      <p><strong>Cadastre</strong> : parcelle, identifiant, contenance, plan. <strong>Urbanisme</strong> : zone du PLU, règlement en PDF et lien Géoportail. <strong>Risques</strong> : argiles, inondation, séisme… et lien Géorisques.</p>
+      <div class="astuce"><strong>Astuce</strong>Une zone « patrimoniale » (SPR, PSMV) signale que les travaux extérieurs passent par l'Architecte des Bâtiments de France : l'onglet Travaux le rappelle dans les démarches.</div>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>06</span></div>
+</section>
+
+<!-- Marché -->
+<section class="page blanc">
+  <span class="sur">Étapes 3 et 4</span>
+  <h1>Le marché réel du quartier</h1>
+  <div class="g2" style="align-items: start">
+    <div style="display: grid; gap: 2mm">
+      <img class="capture" src="captures/03-marche.png" alt="Ventes DVF et DPE">
+      <h3>Ventes DVF et DPE</h3>
+      <p>Prix au m² de la commune depuis 2021, par année (quartiles et médiane), et diagnostics énergétiques des logements voisins dans un rayon de 150 m.</p>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <img class="capture" src="captures/04-similaires.png" alt="Biens similaires vendus">
+      <h3>Biens similaires vendus</h3>
+      <p>Les ventes notariées autour du bien, sur une carte et en tableau, filtrables par type (dont garages et parkings), surface, rayon, période et pièces.</p>
+    </div>
+  </div>
+  <div class="astuce"><strong>Prix de revente</strong>« Utiliser ces prix pour la revente » remplit les lots du BP : prix bas = les ventes les moins chères du secteur (quart inférieur), prix haut = les plus chères (quart supérieur). Dans le BP, chaque lot est ensuite estimé selon sa nature (appartement, local commercial, garage…).</div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>07</span></div>
+</section>
+
+<!-- Travaux 1 -->
+<section class="page blanc">
+  <span class="sur">Étape 9 · Travaux (1/3)</span>
+  <h1>Décrire le bien, chiffrer en un clic</h1>
+  <img class="capture" src="captures/05-travaux-description.png" alt="Onglet Travaux">
+  <div class="g2">
+    <div style="display: grid; gap: 2mm">
+      <h3>À la voix, en texte ou avec Claude</h3>
+      <ul>
+        <li><span class="bouton">Décrire le bien à la voix</span> : parler naturellement, par exemple « T3 de 65 m², cuisine et salle de bain à refaire, deux chambres à rafraîchir, électricité pas aux normes, simple vitrage ». L'appli affiche ce qu'elle a compris et remplit les pièces.</li>
+        <li>Ou taper, coller le texte de l'annonce, puis <span class="bouton">Analyser le texte</span>.</li>
+        <li>Ou envoyer les photos de l'annonce à Claude (page 17).</li>
+      </ul>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <h3>Forfait rapide au m²</h3>
+      <table>
+        <tr><td>Rafraîchissement</td><td class="n">450 €/m²</td></tr>
+        <tr><td>Rénovation globale</td><td class="n">850 €/m²</td></tr>
+        <tr><td>Réhabilitation lourde</td><td class="n">1 200 €/m²</td></tr>
+      </table>
+      <p>Un clic sur une carte reporte le forfait dans le bilan. La mention « conseillé » s'appuie sur l'état des pièces.</p>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>08</span></div>
+</section>
+
+<!-- Travaux 2 -->
+<section class="page blanc">
+  <span class="sur">Étape 9 · Travaux (2/3)</span>
+  <h1>Pièces et devis détaillé</h1>
+  <img class="capture" src="captures/07-travaux-pieces.png" alt="État des pièces">
+  <div class="g2" style="align-items: start">
+    <div style="display: grid; gap: 2mm">
+      <h3>État des pièces</h3>
+      <p>Une ligne par pièce : type, surface (vide = répartie automatiquement), état <em>bon, à rafraîchir, à rénover, à refaire</em>. Les boutons T1 à T5 créent les pièces d'une typologie. Compléter les éléments généraux (électricité, chauffage, fenêtres, plomberie, structure, toiture, façade, année) et les options du projet (division, changement de destination, surface créée, parking, copropriété…).</p>
+      <h3>Générer le devis détaillé</h3>
+      <p>Le devis est construit lot par lot avec les grilles de prix (entrée, milieu ou haut de gamme). Quantités modifiables, lots ajoutables. Il remplace le budget travaux du bilan ; géomètre, architecte, avocat et huissier vont dans les coûts techniques, l'assurance dommages-ouvrage dans les frais.</p>
+    </div>
+    <img class="capture" src="captures/08-travaux-devis.png" alt="Devis détaillé">
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>09</span></div>
+</section>
+
+<!-- Travaux 3 -->
+<section class="page blanc">
+  <span class="sur">Étape 9 · Travaux (3/3)</span>
+  <h1>Lots, TVA et démarches</h1>
+  <img class="capture" src="captures/10b-travaux-lots.png" alt="Travaux par lot">
+  <p><strong>Travaux par lot</strong> : pour un immeuble découpé, chaque lot revendu a sa nature, sa surface traitée et son forfait (ou un montant libre). <span class="bouton">Chiffrer par lot dans le bilan</span> remplace le budget travaux par le total.</p>
+  <div class="g2" style="align-items: start">
+    <div style="display: grid; gap: 2mm">
+      <img class="capture" src="captures/09-travaux-tva.png" alt="Requalification et TVA">
+      <h3>Requalification en immeuble neuf</h3>
+      <p>Une barre par élément : bascule si un élément de gros œuvre atteint 50 %, si les 6 postes de second œuvre atteignent les deux tiers, si la surface augmente de plus de 10 % ou si l'immeuble a moins de 5 ans. Le régime de TVA « automatique » en découle.</p>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <img class="capture" src="captures/10-travaux-demarches.png" alt="Démarches administratives">
+      <h3>Démarches administratives</h3>
+      <p>Qui contacter et dans quel délai : mairie (PLU, DP, permis), ABF, géomètre et notaire, syndic, réseaux, diagnostics et assurances. Les démarches « avant le compromis » sont signalées, avec la clause suspensive à prévoir.</p>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>10</span></div>
+</section>
+
+<!-- BP -->
+<section class="page blanc">
+  <span class="sur">Étape 8</span>
+  <h1>BP avec travaux et négociation</h1>
+  <img class="capture" src="captures/11-bp.png" alt="BP avec travaux">
+  <div class="g2">
+    <div style="display: grid; gap: 2mm">
+      <h3>Négocier avec le plafond sous les yeux</h3>
+      <p>Le curseur de remise fait varier le prix d'achat et tout le bilan. Le tableau donne le <strong>prix d'achat maximum</strong> pour la marge cible, selon une revente basse, moyenne ou haute, et la marge obtenue à chaque niveau de remise. L'historique garde la trace des offres et contre-offres.</p>
+      <h3>Le bilan, au format de l'Excel</h3>
+      <p>Achat et frais de notaire (4,5 % par défaut, 3 % au minimum, 8 % sans engagement de revente), budget travaux par poste avec TVA et % rénové, recettes par lot, TVA à la revente, impôt sur les sociétés.</p>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <h3>Les lots revendus</h3>
+      <p>Chaque lot a une <strong>nature</strong> : appartement, maison, local commercial, garage, parking, terrain. Son prix bas et haut est estimé avec les ventes DVF de même nature, au m² ou à l'unité pour un garage. Il suit les changements de nature ou de surface, sauf si un prix a été saisi à la main.</p>
+      <div class="astuce"><strong>Prix retenu</strong>La colonne « Prix retenu » permet d'imposer un prix de revente ; le scénario passe alors en « saisi ».</div>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>11</span></div>
+</section>
+
+<!-- Financement -->
+<section class="page blanc">
+  <span class="sur">Étapes 10 et 11</span>
+  <h1>Financement</h1>
+  <img class="capture" src="captures/12-financement.png" alt="Mode de financement">
+  <div class="g2">
+    <div style="display: grid; gap: 2mm">
+      <h3>Besoins et ressources</h3>
+      <p>Le plan compare les besoins (foncier, coût technique, frais) aux ressources. Ajouter les sources avec les boutons : fonds propres, comptes courants d'associés, <strong>ligne de crédit marchand</strong> (in fine, 24 mois maximum), levée obligataire ou crowdfunding, associé en participation.</p>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <h3>Coût de chaque source</h3>
+      <p>Taux, durée, frais de dossier, garantie, commission, frais de plateforme, part de bénéfice : le coût total s'ajoute aux frais financiers du bilan. Une alerte s'affiche si l'opération dépasse 24 mois avec une ligne de crédit.</p>
+      <div class="astuce"><strong>Astuce</strong>Une nouvelle source se pré-remplit avec le montant qui manque.</div>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>12</span></div>
+</section>
+
+<!-- Coûts -->
+<section class="page blanc">
+  <span class="sur">Étapes 5, 12 et 13</span>
+  <h1>Coûts, frais de vente et profil</h1>
+  <img class="capture" src="captures/13-couts.png" alt="Coûts techniques">
+  <div class="g3">
+    <div style="display: grid; gap: 2mm">
+      <h3>Coûts techniques</h3>
+      <p>Géomètre, architecte, bureau d'études, diagnostics, avocat, huissier, gestion, comptabilité, dommages-ouvrage, GFA : chacun en <strong>€ ou en % des travaux</strong>. En %, le montant suit automatiquement les changements de travaux.</p>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <h3>Frais de vente</h3>
+      <p>Honoraires d'agence en montant ou en % du prix de vente, diagnostics, mainlevée, home staging, autres frais.</p>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <h3>Profil MdB</h3>
+      <p>SAS ou SARL, capital, régime de TVA, frais de notaire et mode de sortie du bénéfice (dividendes au PFU de 31,4 %, cotisations en SARL) : le net pour les associés en découle.</p>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>13</span></div>
+</section>
+
+<!-- RP -->
+<section class="page blanc">
+  <span class="sur">Étapes 6 et 7</span>
+  <h1>Résidence principale ou société ?</h1>
+  <img class="capture" src="captures/14-rp.png" alt="Résidence principale">
+  <div class="g2">
+    <div style="display: grid; gap: 2mm">
+      <h3>Banque et fonds propres</h3>
+      <p>Le même bien acheté en nom propre, habité puis revendu, plus-value exonérée. Saisir l'apport, la durée du prêt immobilier (15, 20 ou 25 ans), le taux, l'assurance, la garantie et la durée de détention. L'appli calcule la mensualité, le revenu minimum du foyer (35 % d'endettement), le capital restant dû à la revente et les indemnités de remboursement anticipé.</p>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <img class="capture" src="captures/15-comparatif.png" alt="Comparatif">
+      <h3>Comparatif</h3>
+      <p>Côte à côte : frais, financement (ligne de crédit contre prêt amortissable), TVA, impôts, gain net, marge et rendement de l'apport.</p>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>14</span></div>
+</section>
+
+<!-- Récap -->
+<section class="page blanc">
+  <span class="sur">Étape 14</span>
+  <h1>Récapitulatif et dossier PDF</h1>
+  <img class="capture" src="captures/16-recap.png" alt="Récapitulatif">
+  <div class="g2" style="align-items: start">
+    <div style="display: grid; gap: 2mm">
+      <h3>Synthèse et points de vigilance</h3>
+      <p>Verdict de rentabilité, chiffres clés, bilan résumé et points de vigilance (urbanisme, risques, DPE, financement, démarches à mener avant le compromis).</p>
+      <h3>Télécharger le PDF</h3>
+      <p>Choisir le format : <strong>Smartphone · portrait A4</strong> (lecture sur téléphone, impression, banque) ou <strong>PC · paysage 16/9</strong> (écran, présentation aux investisseurs). Cocher l'option pour ajouter le comparatif résidence principale.</p>
+    </div>
+    <div style="display: grid; grid-template-columns: 0.72fr 1fr; gap: 3mm; align-items: start">
+      <img class="capture" src="captures/pdf-portrait-1.png" alt="PDF portrait">
+      <div style="display: grid; gap: 3mm">
+        <img class="capture" src="captures/pdf-paysage-1.png" alt="PDF paysage, page de garde">
+        <img class="capture" src="captures/pdf-paysage-3.png" alt="PDF paysage, bilan">
+      </div>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>15</span></div>
+</section>
+
+<!-- Projets -->
+<section class="page blanc">
+  <span class="sur">Suivi</span>
+  <h1>Projets enregistrés</h1>
+  <img class="capture" src="captures/17-projets.png" alt="Projets">
+  <div class="g2">
+    <div style="display: grid; gap: 2mm">
+      <h3>Enregistrer et reprendre</h3>
+      <p><span class="bouton">Enregistrer en projet</span>, en haut de chaque analyse, sauvegarde tout : prix, travaux, lots, financement, offres. Le menu « Projets » liste les analyses ; un clic les rouvre dans l'état où elles ont été laissées.</p>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <h3>Sur quel appareil ?</h3>
+      <p>Les projets sont stockés dans le navigateur de l'appareil utilisé : un projet enregistré sur l'ordinateur n'apparaît pas sur le téléphone, ni chez Maëva. Le PDF reste le moyen de partager une analyse.</p>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>16</span></div>
+</section>
+
+<!-- Claude -->
+<section class="page noir">
+  <span class="sur">Avec Claude</span>
+  <h1>Le connecteur Claude<br>et les photos d'annonce</h1>
+  <p class="doux" style="max-width: 160mm">Claude (l'abonnement de chacun) peut utiliser les outils de MADRIMMO : rechercher une adresse, lire la fiche du bien, trouver les ventes comparables, calculer le bilan, négocier, comparer la résidence principale, monter le financement et proposer les travaux à partir des photos. L'appli n'embarque aucune IA payante.</p>
+  <div class="g2" style="margin-top: 3mm">
+    <div style="display: grid; gap: 2mm">
+      <h3>Activer le connecteur (une fois)</h3>
+      <ol>
+        <li>Dans Vercel, projet MADRIMMO, Settings → Environment Variables : ajouter <strong>MADRIMMO_JETON</strong> (au moins 16 caractères, à garder secret), puis redéployer.</li>
+        <li>Dans Claude : Personnaliser → Connecteurs → Ajouter un connecteur personnalisé, avec l'adresse <strong>https://&lt;adresse de l'appli&gt;/api/mcp/&lt;jeton&gt;</strong>.</li>
+        <li>Chaque personne l'ajoute sur son propre compte Claude.</li>
+      </ol>
+    </div>
+    <div style="display: grid; gap: 2mm">
+      <h3>Exemples de demandes</h3>
+      <ul>
+        <li>« Analyse le 12 rue de la Loge à Montpellier, T3 de 65 m² affiché 210 000 €. »</li>
+        <li>« Voici les photos de l'annonce : propose une approche travaux. » Claude repère les pièces et leur état, puis renvoie un lien qui pré-remplit l'onglet Travaux.</li>
+        <li>« Quel prix d'achat maximum pour 15 % de marge ? »</li>
+        <li>« Compare avec un achat en résidence principale, 30 000 € d'apport sur 25 ans. »</li>
+      </ul>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>17</span></div>
+</section>
+
+<!-- Règles et FAQ -->
+<section class="page blanc">
+  <span class="sur">Référence</span>
+  <h1>Règles de calcul et FAQ</h1>
+  <div class="g2" style="align-items: start">
+    <div style="display: grid; gap: 2mm">
+      <h3>Hypothèses par défaut (modifiables)</h3>
+      <table>
+        <tr><td>Frais de notaire marchand de biens</td><td class="n">4,5 %</td></tr>
+        <tr><td>Aléas sur travaux</td><td class="n">6 %</td></tr>
+        <tr><td>Marge cible (bénéfice brut / CA)</td><td class="n">15 %</td></tr>
+        <tr><td>Impôt sur les sociétés</td><td class="n">15 % puis 25 %</td></tr>
+        <tr><td>Dividendes (PFU 2026)</td><td class="n">31,4 %</td></tr>
+        <tr><td>TVA à la revente</td><td class="n">automatique</td></tr>
+        <tr><td>Notaire résidence principale</td><td class="n">7,5 %</td></tr>
+        <tr><td>Prêt résidence principale</td><td class="n">20 ans, 3,4 %</td></tr>
+        <tr><td>Endettement maximum</td><td class="n">35 %</td></tr>
+      </table>
+      <p class="doux" style="font-size: 8.5pt">TVA automatique : exonération pour un logement ancien, TVA sur la marge pour un terrain à bâtir ou une division foncière, TVA sur le prix total si les travaux requalifient l'immeuble en neuf.</p>
+    </div>
+    <div style="display: grid; gap: 3mm">
+      <h3>Questions fréquentes</h3>
+      <p><strong>La dictée ne marche pas.</strong> Autoriser le micro pour le site dans le navigateur. Sinon, utiliser le micro du clavier du téléphone dans le champ de texte.</p>
+      <p><strong>Pas de ventes comparables.</strong> Élargir le rayon, la période ou l'écart de surface dans « Biens similaires ». Les données DVF couvrent 2021 à aujourd'hui.</p>
+      <p><strong>Un prix de revente a changé tout seul.</strong> Les lots en automatique suivent leur nature et leur surface ; saisir un prix bas ou haut à la main le fige.</p>
+      <p><strong>Un bien hors Occitanie.</strong> L'appli est limitée à la région.</p>
+      <p><strong>Les chiffres font foi ?</strong> Non : c'est une aide à la décision. Fiscalité et TVA sont à valider avec l'expert-comptable, l'urbanisme avec la mairie.</p>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Guide</span><span>18</span></div>
+</section>
+
+<!-- Dos -->
+<section class="page noir" style="justify-content: center; align-items: center; gap: 8mm; text-align: center">
+  <svg width="120" height="94" viewBox="0 0 205 160" role="img" aria-label="Monogramme MADRIMMO"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="url(#chm)" stroke-width="14" stroke-linejoin="miter" stroke-miterlimit="10" stroke-linecap="square"/></svg>
+  <span style="font-family: 'Cormorant Garamond', serif; font-size: 18pt">Acheter juste. Rénover bien. Revendre clair.</span>
+  <span class="sur">Marchand de biens · Occitanie</span>
+</section>
+
+</body>
+</html>
