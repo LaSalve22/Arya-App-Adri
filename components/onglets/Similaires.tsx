@@ -27,7 +27,7 @@ export default function Similaires({ etat, setEtat, fiche }: PropsOnglet) {
     if (!fiche?.codeInsee) return;
     setVentes(null);
     const q = new URLSearchParams({ insee: fiche.codeInsee, lon: String(fiche.lon), lat: String(fiche.lat), type, rayon: String(rayon), tolerance: String(tolerance), min: "0" });
-    if (surface && type !== "Terrain") q.set("surface", String(surface));
+    if (surface && type !== "Terrain" && type !== "Dependance") q.set("surface", String(surface));
     fetch(`/api/dvf/comparables?${q}`)
       .then(async (r) => { const d = await r.json(); if (!r.ok) throw new Error(d.erreur); setVentes(d.ventes); setErr(null); })
       .catch((e) => setErr(e.message));
@@ -56,7 +56,7 @@ export default function Similaires({ etat, setEtat, fiche }: PropsOnglet) {
         <div className="entete"><h2>Biens similaires vendus</h2><span className="doux petit">Ventes réelles DVF (actes notariés)</span></div>
         <div className="grille3">
           <Champ label="Type">
-            <select value={type} onChange={(e) => setType(e.target.value)}><option>Maison</option><option>Appartement</option><option>Terrain</option><option>Local</option></select>
+            <select value={type} onChange={(e) => setType(e.target.value)}><option>Maison</option><option>Appartement</option><option>Terrain</option><option>Local</option><option value="Dependance">Garage, parking</option></select>
           </Champ>
           <Champ label="Surface de référence (m²)"><Num v={surface} pas={1} set={(n) => setSurface(n || null)} /></Champ>
           <Champ label="Écart de surface toléré">

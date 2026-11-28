@@ -189,7 +189,7 @@ export function creerServeur(origine: string): McpServer {
       description: "Ventes DVF comparables autour d'un point (même type, surface ±30 %, rayon 500 m élargi si besoin) avec médiane et quartiles du prix au m².",
       inputSchema: {
         code_insee: z.string(), lon: z.number(), lat: z.number(),
-        type: z.enum(["Maison", "Appartement", "Terrain", "Local"]),
+        type: z.enum(["Maison", "Appartement", "Terrain", "Local", "Dependance"]).describe("Dependance = garage, box ou parking vendu seul : prix par unité"),
         surface: z.number().optional(),
       },
     },
