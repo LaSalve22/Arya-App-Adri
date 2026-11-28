@@ -23,7 +23,7 @@ import { demarches, LIBELLES_INTERLOCUTEURS } from "../travaux/demarches";
 import { encoderPlan } from "../travaux/lien";
 
 export const INSTRUCTIONS = `MADRIMMO : outils d'analyse pour marchand de biens en Occitanie (départements 09, 11, 12, 30, 31, 32, 34, 46, 48, 65, 66, 81, 82).
-Réponds en français. Méthode de calcul = Excel « bilan prévisionnel » de l'utilisateur : frais de notaire 3 % (engagement de revente), aléas 6 % des travaux, IS 15 % jusqu'à 42 500 € puis 25 %. Régime de TVA automatique par défaut : exonération pour un logement ancien, TVA sur la marge pour un terrain à bâtir ou une division foncière, TVA sur le prix total si les travaux requalifient l'immeuble en neuf. Marge visée : 15 % du CA (bénéfice brut / CA).
+Réponds en français. Méthode de calcul = Excel « bilan prévisionnel » de l'utilisateur : frais de notaire 4,5 % par prudence (engagement de revente ; 3 % au minimum), aléas 6 % des travaux, IS 15 % jusqu'à 42 500 € puis 25 %. Régime de TVA automatique par défaut : exonération pour un logement ancien, TVA sur la marge pour un terrain à bâtir ou une division foncière, TVA sur le prix total si les travaux requalifient l'immeuble en neuf. Marge visée : 15 % du CA (bénéfice brut / CA).
 Démarche type pour analyser un bien :
 1. chercher_adresse (ou analyser_annonce si l'utilisateur colle une annonce) ;
 2. fiche_bien (parcelle, PLU, risques, DPE voisins) ;
@@ -56,7 +56,7 @@ const entreeBilan = {
   prix_revente: z.number().optional().describe("Prix de revente total retenu par l'utilisateur, en € : remplace les prix bas/haut (réparti au prorata des lots)"),
   regime_tva: z.enum(["auto", "marge", "exoneration", "total"]).optional().describe("auto par défaut : déduit du projet et des travaux"),
   nature_operation: z.enum(["logement_ancien", "terrain_a_batir", "division_fonciere"]).optional().describe("Pour le régime de TVA automatique (logement ancien par défaut)"),
-  taux_notaire: z.number().optional().describe("0.03 avec engagement de revente (défaut), 0.08 sinon"),
+  taux_notaire: z.number().optional().describe("0.045 par défaut (marchand de biens, prudent), 0.03 au minimum, 0.08 sans engagement de revente"),
   montant_emprunte: z.number().optional(),
   taux_emprunt: z.number().optional().describe("Taux annuel, ex. 0.045"),
   duree_mois: z.number().optional().describe("Durée de l'opération en mois (défaut 12)"),
@@ -86,7 +86,7 @@ type EntreeBilan = { [K in keyof typeof entreeBilan]?: z.infer<(typeof entreeBil
 export function hypothesesDepuisEntree(e: EntreeBilan): Hypotheses {
   const p: HypothesesPartielles = {
     prixAcquisition: e.prix_achat,
-    tauxNotaire: e.taux_notaire,
+    tauxNotaire: e.taux_notaire ?? 0.045,
     regimeTVA: e.regime_tva ?? "auto",
     natureOperation: e.nature_operation,
     scenario: e.scenario,
@@ -261,8 +261,11 @@ export function creerServeur(origine: string): McpServer {
         taux_assurance_pret: z.number().optional().describe("Défaut 0.003 par an"),
         charges_mensuelles: z.number().optional().describe("Taxe foncière + copro + assurance, par mois"),
         loyer_evite_mensuel: z.number().optional(),
-        frais_garantie: z.number().optional(),
-        indemnites_remboursement: z.number().optional(),
+        apport_rp: z.number().optional().describe("Apport personnel pour l'achat en nom propre"),
+        duree_pret_ans: z.number().optional().describe("Prêt immobilier amortissable : 15, 20 (défaut) ou 25 ans"),
+        taux_pret: z.number().optional().describe("Taux nominal du prêt immobilier, défaut 0.034"),
+        duree_detention_mois: z.number().optional().describe("Durée de détention avant revente, défaut 24 mois"),
+        ira_negociees: z.boolean().optional().describe("Indemnités de remboursement anticipé négociées à 0"),
         frais_revente_hors_agence: z.number().optional(),
       },
     },
@@ -271,15 +274,23 @@ export function creerServeur(origine: string): McpServer {
         const h = hypothesesDepuisEntree(e);
         const d = optionsRPParDefaut();
         const rp: OptionsRP = {
+          ...d,
           tauxNotaire: e.taux_notaire_rp ?? d.tauxNotaire, tauxAssurance: e.taux_assurance_pret ?? d.tauxAssurance,
-          fraisGarantie: e.frais_garantie ?? 0, ira: e.indemnites_remboursement ?? 0, chargesMensuelles: e.charges_mensuelles ?? 0,
-          loyerEvite: e.loyer_evite_mensuel ?? 0, fraisRevente: e.frais_revente_hors_agence ?? 0,
+          apport: e.apport_rp ?? d.apport, dureePretAns: e.duree_pret_ans ?? d.dureePretAns, tauxPret: e.taux_pret ?? d.tauxPret,
+          dureeDetentionMois: e.duree_detention_mois ?? d.dureeDetentionMois, iraNegociees: e.ira_negociees ?? false,
+          chargesMensuelles: e.charges_mensuelles ?? 0, loyerEvite: e.loyer_evite_mensuel ?? 0, fraisRevente: e.frais_revente_hors_agence ?? 0,
         };
         const q = calculerResidencePrincipale(h, rp);
         const a = (v: number) => Math.round(v);
         return json({
           marchand_de_biens: resume(calculerBilan(h)),
           residence_principale: {
+            banque: {
+              apport: a(rp.apport), montant_emprunte: a(q.banque.montantEmprunte), duree_pret_ans: rp.dureePretAns, mensualite_assurance_comprise: a(q.banque.mensualiteTotale),
+              revenu_net_mensuel_minimum: a(q.banque.revenuMinimum), capital_restant_du_a_la_revente: a(q.banque.capitalRestantRevente), alertes: q.banque.alertes,
+            },
+            financement_detail: { interets: a(q.financement.interets), assurance: a(q.financement.assurance), garantie: a(q.financement.garantie), dossier: a(q.financement.dossier), ira: a(q.financement.ira) },
+            duree_detention_mois: q.dureeMois,
             notaire: a(q.notaire), travaux: a(q.travaux), financement: a(q.financement.total), charges: a(q.charges), frais_vente: a(q.fraisVente),
             revente: a(q.revente), impot_plus_value: 0, gain_net: a(q.gainNet), gain_avec_loyer_economise: a(q.gainAvecLoyer),
             marge_sur_revente: Math.round(q.margeSurRevente * 1000) / 10 + " %",

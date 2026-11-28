@@ -28,6 +28,10 @@ export default function Financement({ etat, setEtat, a }: PropsOnglet) {
         <div className="grille3">
           <Champ label="Durée de l'opération (mois)"><Num v={h.financement.dureeMois} pas={1} largeur={80} set={(n) => setEtat({ ...etat, hypotheses: { ...h, financement: { ...h.financement, dureeMois: n } } })} /></Champ>
         </div>
+        {h.financement.dureeMois > 24 && (h.financement.sources ?? []).some((s) => s.type === "pret") && (
+          <p className="alerte petit">Une ligne de crédit marchand de biens dure 24 mois au maximum : au-delà, prévois un refinancement ou des fonds propres.</p>
+        )}
+        <p className="doux petit">Marchand de biens : ligne de crédit in fine (intérêts sur la durée d'utilisation, capital remboursé à la revente). Le prêt immobilier amortissable sur 15 à 25 ans ne concerne que l'achat en résidence principale.</p>
         <div className="grille2">
           <table className="t">
             <thead><tr><th>Besoins</th><th className="n">Montant</th></tr></thead>

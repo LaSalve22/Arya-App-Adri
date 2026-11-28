@@ -8,15 +8,33 @@ import type { PropsOnglet } from "./types";
 
 const Carte = dynamic(() => import("@/components/Carte"), { ssr: false, loading: () => <div className="carte-map chargement">Chargement de la carte…</div> });
 
-export default function Nature({ etat, setEtat, fiche, comps }: PropsOnglet) {
+export default function Nature({ etat, setEtat, fiche, comps, a }: PropsOnglet) {
   const c = etat.caracteristiques;
   const maj = (p: Partial<Caracteristiques>) => setEtat({ ...etat, caracteristiques: { ...c, ...p } });
   if (!fiche) return <p className="chargement">Interrogation du cadastre, du PLU et de Géorisques…</p>;
   const pa = fiche.parcelle.ok ? fiche.parcelle.data : null;
   const urba = fiche.urbanisme.ok ? fiche.urbanisme.data : null;
   const risq = fiche.risques.ok ? fiche.risques.data : null;
+  const h = etat.hypotheses;
+  const remise = etat.prixAffiche > 0 && h.prixAcquisition > 0 ? 1 - h.prixAcquisition / etat.prixAffiche : 0;
+  const prixMax = a.prixMax.find((p) => p.scenario === "moyen")?.prix ?? null;
   return (
     <div className="pile">
+      <div className="carte pile">
+        <div className="entete"><h2>Prix</h2><span className="doux petit">À saisir dès maintenant : tous les calculs en dépendent</span></div>
+        <div className="grille3">
+          <Champ label="Prix affiché (€)">
+            <Num v={etat.prixAffiche} set={(n) => setEtat({ ...etat, prixAffiche: n, hypotheses: { ...h, prixAcquisition: h.prixAcquisition && h.prixAcquisition !== etat.prixAffiche ? h.prixAcquisition : n } })} />
+          </Champ>
+          <Champ label="Prix d'achat visé (€)" aide={remise ? `remise de ${(remise * 100).toLocaleString("fr-FR", { maximumFractionDigits: 1 })} %` : undefined}>
+            <Num v={h.prixAcquisition} set={(n) => setEtat({ ...etat, hypotheses: { ...h, prixAcquisition: n } })} />
+          </Champ>
+          <div className="kpi">
+            <span className="v">{prixMax == null ? "—" : `${Math.round(prixMax).toLocaleString("fr-FR")} €`}</span>
+            <span className="l">Prix d'achat maximum pour {Math.round(etat.margeCible * 100)} % de marge (revente moyenne, travaux actuels)</span>
+          </div>
+        </div>
+      </div>
       <div className="carte pile">
         <h2>Caractéristiques du bien</h2>
         <div className="grille3">

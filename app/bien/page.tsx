@@ -16,10 +16,10 @@ import Travaux, { appliquerPlan } from "@/components/onglets/Travaux";
 import { completerPlan, decoderPlan } from "@/lib/travaux/lien";
 import { Bandeau } from "@/components/onglets/ui";
 import type { Comps, Fiche, PropsOnglet } from "@/components/onglets/types";
-import { etatParDefaut, type EtatAnalyse } from "@/lib/etat";
+import { etatParDefaut, synchroniserPourcentages, type EtatAnalyse } from "@/lib/etat";
 import { analyser } from "@/lib/analyse";
 import { profilParDefaut } from "@/lib/bilan/profil";
-import { optionsRPParDefaut } from "@/lib/bilan/residence";
+import { completerOptionsRP } from "@/lib/bilan/residence";
 import type { Lot } from "@/lib/bilan/types";
 import { enregistrerProjet, lireProjet, nouvelId, type Projet } from "@/lib/projets";
 
@@ -40,7 +40,7 @@ const ONGLETS = [
   ["recap", "Récapitulatif"],
 ] as const;
 type Onglet = (typeof ONGLETS)[number][0];
-const AVEC_BANDEAU: Onglet[] = ["travaux", "profil", "rp", "comparatif", "frais-financiers", "financement", "couts", "vente"];
+const AVEC_BANDEAU: Onglet[] = ["bien", "marche", "similaires", "travaux", "profil", "rp", "comparatif", "frais-financiers", "financement", "couts", "vente"];
 
 export default function Page() {
   return (
@@ -60,7 +60,9 @@ function Analyse() {
   const [fiche, setFiche] = useState<Fiche | null>(null);
   const [err, setErr] = useState<string | null>(null);
   const [comps, setComps] = useState<Comps | null>(null);
-  const [etat, setEtat] = useState<EtatAnalyse | null>(null);
+  const [etat, setEtatBrut] = useState<EtatAnalyse | null>(null);
+  // Chaque modification recalcule les coûts saisis en % des travaux.
+  const setEtat = useCallback((e: EtatAnalyse) => setEtatBrut(synchroniserPourcentages(e)), []);
   const [message, setMessage] = useState<string | null>(null);
 
   // Onglet actif dans l'adresse (#financement…), pour pouvoir partager un lien direct.
@@ -95,11 +97,12 @@ function Analyse() {
         prixAffiche: p.prixAffiche,
         margeCible: p.margeCible,
         historique: p.historique,
-        rp: p.rp ?? optionsRPParDefaut(),
+        rp: completerOptionsRP(p.rp),
         profil: p.profil ?? profilParDefaut(),
         caracteristiques: p.caracteristiques ?? { ...base.caracteristiques, type: p.typeBien, surface: p.surface },
         coutsTechniques: p.coutsTechniques ?? base.coutsTechniques,
         travauxPlan: completerPlan(p.travauxPlan),
+        coutsPct: p.coutsPct,
       });
     } else {
       const h = base.hypotheses;
@@ -204,6 +207,7 @@ function Analyse() {
       caracteristiques: etat.caracteristiques,
       coutsTechniques: etat.coutsTechniques,
       travauxPlan: etat.travauxPlan,
+      coutsPct: etat.coutsPct,
       creeLe: projet?.creeLe ?? new Date().toISOString(),
       majLe: new Date().toISOString(),
     };
@@ -239,7 +243,7 @@ function Analyse() {
 
         <div className="pile contenu">
           {err && <p className="erreur">{err}</p>}
-          {props && AVEC_BANDEAU.includes(onglet) && <Bandeau a={props.a} margeCible={props.etat.margeCible} />}
+          {props && AVEC_BANDEAU.includes(onglet) && <Bandeau a={props.a} margeCible={props.etat.margeCible} etat={props.etat} setEtat={setEtat} />}
 
           {onglet === "recherche" && <div className="carte"><Recherche titre={false} /></div>}
           {sansBien && onglet !== "recherche" && <p className="alerte">Choisis d'abord un bien dans l'onglet « Recherche ».</p>}

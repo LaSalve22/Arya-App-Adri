@@ -1,5 +1,6 @@
 "use client";
 import type { Analyse } from "@/lib/analyse";
+import type { EtatAnalyse } from "@/lib/etat";
 import { classeMarge, eur, pct } from "@/lib/format";
 
 export function Num({ v, set, pas = 1000, suffixe, largeur, echelle = 1 }: { v: number | null | undefined; set: (n: number) => void; pas?: number; suffixe?: string; largeur?: number; echelle?: number }) {
@@ -21,11 +22,18 @@ export function Champ({ label, aide, children }: { label: string; aide?: string;
   );
 }
 
-/** Bandeau compact des chiffres clés, visible sur les onglets de calcul. */
-export function Bandeau({ a, margeCible }: { a: Analyse; margeCible: number }) {
+/** Bandeau compact des chiffres clés, visible sur les onglets de calcul ; le prix d'achat s'y modifie directement. */
+export function Bandeau({ a, margeCible, etat, setEtat }: { a: Analyse; margeCible: number; etat?: EtatAnalyse; setEtat?: (e: EtatAnalyse) => void }) {
   const c = classeMarge(a.r.margeSurCA, margeCible);
   return (
     <div className="bandeau">
+      {etat && setEtat && (
+        <div className="bandeau-prix">
+          <label htmlFor="prix-bandeau"><small>prix d'achat</small></label>
+          <input id="prix-bandeau" type="number" step={1000} value={etat.hypotheses.prixAcquisition || ""} placeholder="à saisir"
+            onChange={(e) => setEtat({ ...etat, hypotheses: { ...etat.hypotheses, prixAcquisition: Number(e.target.value) || 0 } })} />
+        </div>
+      )}
       <div><span className={`puce ${c}`}>{pct(a.r.margeSurCA)}</span><small>marge / CA</small></div>
       <div><strong className={c}>{eur(a.r.beneficeBrut)}</strong><small>bénéfice brut</small></div>
       <div><strong>{eur(a.r.beneficeNetSociete)}</strong><small>net société</small></div>
