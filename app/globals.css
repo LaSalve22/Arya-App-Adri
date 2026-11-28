@@ -162,3 +162,4 @@ button.lien { color: #fff; text-decoration: underline; text-underline-offset: 3p
 .leaflet-tooltip { background: #111; color: #fff; border-color: #333; }
 .leaflet-tooltip-top:before { border-top-color: #111; }
 ::selection { background: #fff; color: #000; }
+.barre-onglets button[aria-selected="true"], .barre-onglets button[aria-selected="true"]:hover { background: #fff; color: #000; border-color: #fff; }
