@@ -31,6 +31,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <nav>
             <Link href="/">Rechercher</Link>
             <Link href="/projets">Projets</Link>
+            <Link href="/importer">Importer</Link>
           </nav>
           <span className="zone">Occitanie · données publiques en direct</span>
         </header>

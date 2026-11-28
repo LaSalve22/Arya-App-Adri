@@ -13,6 +13,7 @@ import { zonePLU } from "../sources/urbanisme";
 import { dpeProches, risques } from "../sources/risques";
 import { comparables, statsCommune, ventesCommune, type TypeBien } from "../sources/dvf";
 import { analyserAnnonce } from "../annonce/parse";
+import { lireAnnonce } from "../annonce/lecture";
 import { calculerFinancement, nouvelleSource, planFinancement } from "../bilan/financement";
 import { calculerSortie, profilParDefaut, type FormeSociete } from "../bilan/profil";
 import type { TypeSource } from "../bilan/types";
@@ -214,8 +215,16 @@ export function creerServeur(origine: string): McpServer {
 
   s.registerTool(
     "analyser_annonce",
-    { description: "Extrait prix, surface, terrain, pièces, DPE et code postal du texte d'une annonce.", inputSchema: { texte: z.string() } },
-    async ({ texte }) => json(analyserAnnonce(texte)),
+    {
+      description: "Lit une annonce à partir de son texte ou de son lien : prix, surface, terrain, pièces, DPE, ville, code postal, position et photos. Bien'ici, PAP et sites d'agences sont lus depuis le lien ; Leboncoin et SeLoger bloquent la lecture par un serveur : demande alors le texte de l'annonce, ou propose le favori « Envoyer à MADRIMMO » de l'appli (page /importer).",
+      inputSchema: { texte: z.string().describe("Texte de l'annonce, lien, ou les deux") },
+    },
+    async ({ texte }) => {
+      try {
+        const r = await lireAnnonce(texte);
+        return json({ ...r.annonce, analyse_texte: analyserAnnonce(texte), guide: r.guide ?? null, importer: `${origine}/importer` });
+      } catch (x) { return erreur(x); }
+    },
   );
 
   s.registerTool(
