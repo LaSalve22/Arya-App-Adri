@@ -2,8 +2,8 @@
 // Chargé uniquement au clic sur « Télécharger le PDF » (@react-pdf/renderer est volumineux).
 import { Document, Font, Line, Page, Path, Polyline, Rect, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import { TRACE_MONOGRAMME } from "@/components/Logo";
-import { NATURES_LOT, parUnite } from "@/lib/dvfLots";
-import { FORFAITS, LIBELLES_ETATS, LIBELLES_PIECES, chiffrer } from "@/lib/travaux/plan";
+import { NATURES_LOT, natureParDefaut, parUnite } from "@/lib/dvfLots";
+import { FORFAITS, LIBELLES_ETATS, LIBELLES_PIECES, chiffrer, montantLot, travauxDesLots } from "@/lib/travaux/plan";
 import { LIBELLES_GAMME } from "@/lib/travaux/catalogue";
 import { demarchesDuBien, LIBELLES_INTERLOCUTEURS } from "@/lib/travaux/demarches";
 import type { Analyse } from "@/lib/analyse";
@@ -267,7 +267,7 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
             <Text style={s.h2}>Recettes</Text>
             {r.recettes.lots.map((l, i) => {
               const lot = h.lots[i];
-              const nat = lot?.nature ? NATURES_LOT.find(([k]) => k === lot.nature)?.[1] : null;
+              const nat = lot ? NATURES_LOT.find(([k]) => k === (lot.nature ?? natureParDefaut(c.type)))?.[1] : null;
               const detail = [nat, lot?.surface && !parUnite(lot.nature) ? `${lot.surface} m²` : null].filter(Boolean).join(", ");
               return <L key={i} l={`${l.libelle}${detail ? ` (${detail})` : ""}`} v={eur(l.prix)} />;
             })}
@@ -301,6 +301,15 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
               <>
                 <L l={`Forfait ${FORFAITS[plan.forfait].libelle.toLowerCase()} (${FORFAITS[plan.forfait].prixM2} €/m²)`} v={eur(FORFAITS[plan.forfait].prixM2 * (plan.surface ?? c.surface ?? 0))} gras />
                 <Text style={[s.petit, { marginTop: 3 }]}>{esp(FORFAITS[plan.forfait].description)}</Text>
+              </>
+            ) : plan.mode === "lots" ? (
+              <>
+                {h.lots.map((l, i) => {
+                  const tl = travauxDesLots([l])[0];
+                  const nat = NATURES_LOT.find(([k]) => k === (l.nature ?? natureParDefaut(c.type)))?.[1];
+                  return <L key={i} l={`${l.libelle}${nat ? ` (${nat})` : ""} · ${l.travauxForfait ? FORFAITS[l.travauxForfait].libelle.toLowerCase() : l.travauxMontant ? "montant libre" : "aucun"}`} v={eur(montantLot(tl))} />;
+                })}
+                <L l="Travaux par lot" v={eur(travauxDesLots(h.lots).reduce((s2, x) => s2 + montantLot(x), 0))} gras />
               </>
             ) : plan.mode === "detail" && devis.length ? (
               <>

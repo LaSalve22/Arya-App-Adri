@@ -63,7 +63,8 @@ function Analyse() {
   const [comps, setComps] = useState<Comps | null>(null);
   const [etat, setEtatBrut] = useState<EtatAnalyse | null>(null);
   // Chaque modification recalcule les coûts saisis en % des travaux.
-  const setEtat = useCallback((e: EtatAnalyse) => setEtatBrut(synchroniserPourcentages(e)), []);
+  // En mode « travaux par lot », les travaux suivent aussi les lots (surface, forfait) modifiés depuis le BP.
+  const setEtat = useCallback((e: EtatAnalyse) => setEtatBrut(synchroniserPourcentages(e.travauxPlan.mode === "lots" ? appliquerPlan(e, e.travauxPlan) : e)), []);
   const [message, setMessage] = useState<string | null>(null);
 
   // Onglet actif dans l'adresse (#financement…), pour pouvoir partager un lien direct.

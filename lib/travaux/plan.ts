@@ -1,6 +1,6 @@
 // Plan travaux d'un bien : état des pièces, éléments généraux, options du projet,
 // forfait rapide au m² ou devis détaillé par lots, et report dans le bilan.
-import type { BudgetTravaux, Hypotheses, PosteTravaux } from "@/lib/bilan/types";
+import type { BudgetTravaux, Hypotheses, Lot, PosteTravaux } from "@/lib/bilan/types";
 import type { CoutsTechniques } from "@/lib/etat";
 import { ARTICLES, type Gamme, type PosteBilan } from "./catalogue";
 
@@ -62,7 +62,8 @@ export interface LigneDevis {
 }
 
 export interface PlanTravaux {
-  mode: "forfait" | "detail";
+  /** forfait : un forfait pour tout le bien ; detail : devis par lots de travaux ; lots : un forfait ou un montant par lot revendu. */
+  mode: "forfait" | "detail" | "lots";
   forfait: Forfait | null;
   gamme: Gamme;
   /** Surface traitée (m²), par défaut la surface du bien. */
@@ -383,6 +384,51 @@ export function reportForfait(base: BudgetTravaux, f: Forfait, surface: number, 
     m[k] = { ttc, tva: (ttc / (1 + taux)) * taux };
   }
   return { travaux: budgetDepuisMontants(base, m, def.pct, projet, surfaceBien), coutsTechniques: {}, assuranceDO: 0, total };
+}
+
+/** Travaux d'un lot revendu : forfait au m² ou montant libre. */
+export interface TravauxLot {
+  surface: number;
+  forfait: Forfait | null;
+  montant: number | null;
+}
+
+/** Travaux de chaque lot revendu, tels que saisis dans le tableau « Travaux par lot ». */
+export function travauxDesLots(lots: Lot[]): TravauxLot[] {
+  return lots.map((l) => ({ surface: l.travauxSurface ?? l.surface ?? 0, forfait: l.travauxForfait ?? null, montant: l.travauxMontant ?? null }));
+}
+
+/** Montant des travaux d'un lot. */
+export function montantLot(l: TravauxLot): number {
+  if (l.forfait) return FORFAITS[l.forfait].prixM2 * l.surface;
+  return l.montant ?? 0;
+}
+
+/**
+ * Report de travaux chiffrés lot par lot. Chaque forfait garde sa répartition par poste ;
+ * un montant libre va en finitions. Les % rénovés sont pondérés par la surface des lots.
+ */
+export function reportLots(base: BudgetTravaux, lots: TravauxLot[], projet: OptionsProjet, surfaceBien: number): Report {
+  const m: Partial<Record<PosteBilan, { ttc: number; tva: number }>> = {};
+  const ajout = (k: PosteBilan, ttc: number, taux: number) => {
+    const x = (m[k] ??= { ttc: 0, tva: 0 });
+    x.ttc += ttc;
+    x.tva += (ttc / (1 + taux)) * taux;
+  };
+  const surfaceTotale = lots.reduce((s, l) => s + (l.surface || 0), 0);
+  const pct: Proposition["pct"] = {};
+  for (const l of lots) {
+    const total = montantLot(l);
+    if (!total) continue;
+    if (l.forfait) {
+      const def = FORFAITS[l.forfait];
+      for (const [k, part] of Object.entries(def.repartition) as [PosteBilan, number][]) ajout(k, total * part, k === "structure" ? 0.2 : 0.1);
+      const poids = surfaceTotale ? l.surface / surfaceTotale : 0;
+      for (const [k, v] of Object.entries(def.pct) as [keyof Proposition["pct"], number][]) pct[k] = (pct[k] ?? 0) + v * poids;
+    } else ajout("finitions", total, 0.1);
+  }
+  const total = lots.reduce((s, l) => s + montantLot(l), 0);
+  return { travaux: budgetDepuisMontants(base, m, pct, projet, surfaceBien), coutsTechniques: {}, assuranceDO: 0, total };
 }
 
 /** Applique un report aux hypothèses du bilan (les coûts techniques sont reportés par l'appelant). */
