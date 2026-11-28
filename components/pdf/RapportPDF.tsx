@@ -1,6 +1,7 @@
 // Rapport PDF d'une analyse, à destination d'une banque ou d'investisseurs.
 // Chargé uniquement au clic sur « Télécharger le PDF » (@react-pdf/renderer est volumineux).
-import { Document, Page, Path, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+import { Document, Font, Line, Page, Path, Polyline, Rect, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
+import { TRACE_MONOGRAMME } from "@/components/Logo";
 import type { Analyse } from "@/lib/analyse";
 import type { EtatAnalyse } from "@/lib/etat";
 import { LIBELLES_FORMES } from "@/lib/bilan/profil";
@@ -13,29 +14,37 @@ const eur = (v: number | null | undefined) => (v == null || !Number.isFinite(v) 
 const pct = (v: number | null | undefined, d = 1) => (v == null || !Number.isFinite(v) ? "-" : esp((v * 100).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })) + " %");
 const m2 = (v: number | null | undefined) => (v == null || !v ? "-" : esp(Math.round(v).toLocaleString("fr-FR")) + " €/m²");
 
+// Polices de la charte, servies par l'appli (public/fonts).
+const origine = typeof window !== "undefined" ? window.location.origin : "";
+Font.register({ family: "Inter", src: `${origine}/fonts/inter-latin-400-normal.woff` });
+Font.register({ family: "InterGras", src: `${origine}/fonts/inter-latin-600-normal.woff` });
+Font.register({ family: "Cormorant", src: `${origine}/fonts/cormorant-garamond-latin-500-normal.woff` });
+Font.register({ family: "CormorantGras", src: `${origine}/fonts/cormorant-garamond-latin-600-normal.woff` });
+Font.registerHyphenationCallback((mot) => [mot]);
+
 const BLEU = "#000000";
 const OR = "#7a7a7a";
-const GRIS = "#5d6b7e";
-const TRAIT = "#dde2ea";
+const GRIS = "#6b6b6b";
+const TRAIT = "#e0e0e0";
 
 const s = StyleSheet.create({
-  page: { padding: 36, paddingBottom: 48, fontSize: 9.5, fontFamily: "Helvetica", color: BLEU, lineHeight: 1.35 },
+  page: { padding: 36, paddingBottom: 48, fontSize: 9.5, fontFamily: "Inter", color: BLEU, lineHeight: 1.35 },
   entete: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", borderBottomWidth: 2, borderBottomColor: BLEU, paddingBottom: 6, marginBottom: 14 },
-  logo: { fontSize: 15, fontFamily: "Helvetica", letterSpacing: 4 },
-  logoOr: { fontFamily: "Helvetica-Bold" },
+  logo: { flexDirection: "row", alignItems: "center", gap: 7 },
+  logoNom: { fontSize: 14, fontFamily: "CormorantGras", letterSpacing: 2.2 },
   petit: { fontSize: 8, color: GRIS },
-  h1: { fontSize: 15, fontFamily: "Helvetica-Bold", marginBottom: 4 },
-  h2: { fontSize: 11.5, fontFamily: "Helvetica-Bold", marginTop: 12, marginBottom: 6, color: BLEU },
+  h1: { fontSize: 19, fontFamily: "Cormorant", fontFeatureSettings: ["lnum"], lineHeight: 1.25, marginBottom: 6 },
+  h2: { fontSize: 11.5, fontFamily: "InterGras", marginTop: 12, marginBottom: 6, color: BLEU },
   ligne: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 3, borderBottomWidth: 0.5, borderBottomColor: TRAIT },
-  total: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderTopWidth: 1.2, borderTopColor: BLEU, fontFamily: "Helvetica-Bold" },
+  total: { flexDirection: "row", justifyContent: "space-between", paddingVertical: 4, borderTopWidth: 1.2, borderTopColor: BLEU, fontFamily: "InterGras" },
   kpis: { flexDirection: "row", flexWrap: "wrap", marginHorizontal: -4 },
   kpi: { width: "33.33%", padding: 4 },
   kpiBox: { borderWidth: 0.8, borderColor: TRAIT, borderRadius: 4, padding: 7 },
-  kpiV: { fontSize: 12.5, fontFamily: "Helvetica-Bold" },
+  kpiV: { fontSize: 12.5, fontFamily: "InterGras" },
   verdict: { padding: 9, borderRadius: 4, marginVertical: 8 },
   deux: { flexDirection: "row", gap: 14 },
   col: { flex: 1 },
-  th: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: BLEU, paddingBottom: 3, fontFamily: "Helvetica-Bold", fontSize: 8.5 },
+  th: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: BLEU, paddingBottom: 3, fontFamily: "InterGras", fontSize: 8.5 },
   tr: { flexDirection: "row", paddingVertical: 2.5, borderBottomWidth: 0.5, borderBottomColor: TRAIT, fontSize: 8.5 },
   pied: { position: "absolute", bottom: 20, left: 36, right: 36, flexDirection: "row", justifyContent: "space-between", fontSize: 7.5, color: GRIS },
 });
@@ -47,9 +56,48 @@ function L({ l, v, gras }: { l: string; v: string; gras?: boolean }) {
 function Entete({ titre }: { titre: string }) {
   return (
     <View style={s.entete} fixed>
-      <Text style={s.logo}>MADR<Text style={s.logoOr}>IMMO</Text></Text>
+      <View style={s.logo}>
+        <Svg width={20} height={15.6} viewBox="0 0 205 160">
+          <Polyline points={TRACE_MONOGRAMME} fill="none" stroke={BLEU} strokeWidth={17} strokeLinejoin="miter" strokeLinecap="square" />
+        </Svg>
+        <Text style={s.logoNom}>MADRIMMO</Text>
+      </View>
       <Text style={s.petit}>{titre}</Text>
     </View>
+  );
+}
+
+// Cachet officiel de la charte : monogramme dans un double filet, nom dessous.
+function Cachet({ largeur }: { largeur: number }) {
+  return (
+    <Svg width={largeur} height={(largeur * 340) / 280} viewBox="0 0 280 340">
+      <Rect x={2} y={2} width={276} height={336} fill="none" stroke={BLEU} strokeWidth={3} />
+      <Rect x={13} y={13} width={254} height={314} fill="none" stroke={BLEU} strokeWidth={1.2} />
+      <Polyline points="58,200 58,80 113,160 168,80 223,200" fill="none" stroke={BLEU} strokeWidth={11} strokeLinejoin="miter" strokeLinecap="square" />
+      <Line x1={60} y1={250} x2={220} y2={250} stroke={BLEU} strokeWidth={1.2} />
+    </Svg>
+  );
+}
+
+function PageDeGarde({ libelle, sousTitre }: { libelle: string; sousTitre: string }) {
+  return (
+    <Page size="A4" style={[s.page, { justifyContent: "space-between", alignItems: "center", paddingTop: 90, paddingBottom: 60 }]}>
+      <View style={{ alignItems: "center" }}>
+        <View style={{ position: "relative" }}>
+          <Cachet largeur={150} />
+          <Text style={{ position: "absolute", left: 0, right: 0, top: 150 * (272 / 280), textAlign: "center", fontFamily: "CormorantGras", fontSize: 13.5, letterSpacing: 3.4 }}>MADRIMMO</Text>
+        </View>
+      </View>
+      <View style={{ alignItems: "center", gap: 10 }}>
+        <Text style={{ fontSize: 8, letterSpacing: 2.4, color: GRIS }}>DOSSIER D'OPÉRATION</Text>
+        <Text style={{ fontFamily: "Cormorant", fontFeatureSettings: ["lnum"], fontSize: 30, lineHeight: 1.25, textAlign: "center", maxWidth: 440, marginBottom: 4 }}>{libelle}</Text>
+        <Text style={{ color: GRIS }}>{sousTitre}</Text>
+      </View>
+      <View style={{ alignItems: "center", gap: 4 }}>
+        <Text style={{ fontFamily: "Cormorant", fontSize: 13 }}>Marchand de biens · Occitanie</Text>
+        <Text style={s.petit}>Établi le {new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</Text>
+      </View>
+    </Page>
   );
 }
 
@@ -95,6 +143,7 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
 
   return (
     <Document title={`MADRIMMO - ${libelle}`} author="MADRIMMO" subject="Analyse d'opération marchand de biens">
+      <PageDeGarde libelle={libelle} sousTitre={[c.type, c.surface ? `${c.surface} m²` : "", pa?.commune].filter(Boolean).join(" · ")} />
       {/* ---------- Page 1 : synthèse ---------- */}
       <Page size="A4" style={s.page}>
         <Entete titre={titre} />
@@ -108,7 +157,7 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
           <PlanParcelle fiche={fiche} />
         </View>
         <View style={[s.verdict, { backgroundColor: "#f2f2f2", borderLeftWidth: 3, borderLeftColor: bon ? "#000000" : "#9a9a9a" }]}>
-          <Text style={{ fontFamily: "Helvetica-Bold" }}>
+          <Text style={{ fontFamily: "InterGras" }}>
             {bon ? "Opération rentable" : "Opération à renégocier"} : marge de {pct(r.margeSurCA)} du chiffre d'affaires (cible {pct(etat.margeCible, 0)}).
           </Text>
         </View>

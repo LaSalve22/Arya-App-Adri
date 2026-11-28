@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import "leaflet/dist/leaflet.css";
+import "@fontsource/inter/400.css";
+import "@fontsource/inter/500.css";
+import "@fontsource/inter/600.css";
+import "@fontsource/cormorant-garamond/500.css";
+import "@fontsource/cormorant-garamond/600.css";
 import "./globals.css";
+import { Monogramme } from "@/components/Logo";
 
 export const viewport = { themeColor: "#000000", colorScheme: "dark" as const };
 
@@ -18,8 +24,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="fr">
       <body>
         <header className="barre">
-          <Link href="/" className="logo">
-            MADR<span>IMMO</span>
+          <Link href="/" className="logo" aria-label="MADRIMMO, accueil">
+            <Monogramme largeur={30} />
+            <span>MADRIMMO</span>
           </Link>
           <nav>
             <Link href="/">Rechercher</Link>

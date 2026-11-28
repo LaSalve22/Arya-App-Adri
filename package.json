@@ -10,6 +10,8 @@
     "postinstall": "node scripts/copier-ocr.mjs"
   },
   "dependencies": {
+    "@fontsource/cormorant-garamond": "^5.3.0",
+    "@fontsource/inter": "^5.3.0",
     "@modelcontextprotocol/sdk": "^1.32.2",
     "@react-pdf/renderer": "4.9.0",
     "@tesseract.js-data/fra": "^1.0.0",
