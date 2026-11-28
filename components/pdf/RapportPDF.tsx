@@ -82,7 +82,31 @@ function Cachet({ largeur }: { largeur: number }) {
   );
 }
 
-function PageDeGarde({ libelle, sousTitre }: { libelle: string; sousTitre: string }) {
+/** Format du rapport : portrait A4 (smartphone, impression) ou paysage 16/9 (PC, écran, vidéoprojection). */
+export type FormatPDF = "portrait" | "paysage";
+const TAILLE_PAYSAGE: [number, number] = [960, 540];
+const pagePaysage = { paddingTop: 26, paddingHorizontal: 40, paddingBottom: 40 };
+
+function PageDeGarde({ libelle, sousTitre, format }: { libelle: string; sousTitre: string; format: FormatPDF }) {
+  if (format === "paysage") {
+    return (
+      <Page size={TAILLE_PAYSAGE} style={[s.page, { flexDirection: "row", alignItems: "center", paddingHorizontal: 70, paddingVertical: 50, gap: 60 }]}>
+        <View style={{ position: "relative" }}>
+          <Cachet largeur={170} />
+          <Text style={{ position: "absolute", left: 0, right: 0, top: 170 * (272 / 280), textAlign: "center", fontFamily: "CormorantGras", fontSize: 15, letterSpacing: 3.8 }}>MADRIMMO</Text>
+        </View>
+        <View style={{ flex: 1, gap: 10 }}>
+          <Text style={{ fontSize: 8, letterSpacing: 2.4, color: GRIS }}>DOSSIER D'OPÉRATION</Text>
+          <Text style={{ fontFamily: "Cormorant", fontFeatureSettings: ["lnum"], fontSize: 36, lineHeight: 1.2 }}>{libelle}</Text>
+          <Text style={{ color: GRIS, fontSize: 11 }}>{sousTitre}</Text>
+          <View style={{ marginTop: 30, borderTopWidth: 0.8, borderTopColor: TRAIT, paddingTop: 10, gap: 3 }}>
+            <Text style={{ fontFamily: "Cormorant", fontSize: 14 }}>Marchand de biens · Occitanie</Text>
+            <Text style={s.petit}>Établi le {new Date().toLocaleDateString("fr-FR", { day: "numeric", month: "long", year: "numeric" })}</Text>
+          </View>
+        </View>
+      </Page>
+    );
+  }
   return (
     <Page size="A4" style={[s.page, { justifyContent: "space-between", alignItems: "center", paddingTop: 90, paddingBottom: 60 }]}>
       <View style={{ alignItems: "center" }}>
@@ -131,9 +155,24 @@ function PlanParcelle({ fiche }: { fiche: Fiche | null }) {
   );
 }
 
-export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, vigilance }: {
-  etat: EtatAnalyse; a: Analyse; fiche: Fiche | null; comps: Comps | null; libelle: string; inclureRP: boolean; vigilance: string[];
+export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, vigilance, format = "portrait" }: {
+  etat: EtatAnalyse; a: Analyse; fiche: Fiche | null; comps: Comps | null; libelle: string; inclureRP: boolean; vigilance: string[]; format?: FormatPDF;
 }) {
+  const paysage = format === "paysage";
+  const taille = paysage ? TAILLE_PAYSAGE : "A4";
+  const stylePage = paysage ? [s.page, pagePaysage] : s.page;
+  const sensibiliteNego = a.sens.length > 0 ? (
+    <>
+                <Text style={s.h2}>Sensibilité à la négociation</Text>
+                <View style={s.th}><Text style={{ width: "22%" }}>Remise</Text><Text style={{ width: "30%", textAlign: "right" }}>Prix</Text><Text style={{ width: "16%", textAlign: "right" }}>Bas</Text><Text style={{ width: "16%", textAlign: "right" }}>Moyen</Text><Text style={{ width: "16%", textAlign: "right" }}>Haut</Text></View>
+                {a.sens.map((l) => (
+                  <View key={l[0].remise} style={s.tr}>
+                    <Text style={{ width: "22%" }}>- {pct(l[0].remise, 0)}</Text><Text style={{ width: "30%", textAlign: "right" }}>{eur(l[0].prix)}</Text>
+                    {l.map((x) => <Text key={x.scenario} style={{ width: "16%", textAlign: "right" }}>{pct(x.margeSurCA)}</Text>)}
+                  </View>
+                ))}
+              </>
+  ) : null;
   const h = etat.hypotheses;
   const plan = etat.travauxPlan;
   const devis = chiffrer(plan.lignes, plan.gamme);
@@ -150,9 +189,9 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
 
   return (
     <Document title={`MADRIMMO - ${libelle}`} author="MADRIMMO" subject="Analyse d'opération marchand de biens">
-      <PageDeGarde libelle={libelle} sousTitre={[c.type, c.surface ? `${c.surface} m²` : "", pa?.commune].filter(Boolean).join(" · ")} />
+      <PageDeGarde format={format} libelle={libelle} sousTitre={[c.type, c.surface ? `${c.surface} m²` : "", pa?.commune].filter(Boolean).join(" · ")} />
       {/* ---------- Page 1 : synthèse ---------- */}
-      <Page size="A4" style={s.page}>
+      <Page size={taille} style={stylePage}>
         <Entete titre={titre} />
         <View style={s.deux}>
           <View style={s.col}>
@@ -177,7 +216,7 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
             ["Bénéfice net", eur(r.beneficeNetSociete), "après IS"],
             ["Besoin de financement", eur(a.plan.besoins.total), `fonds propres ${pct(a.plan.besoins.total ? a.fin.fondsPropres / a.plan.besoins.total : 0)}`],
           ].map(([l, v, d]) => (
-            <View key={l} style={s.kpi}>
+            <View key={l} style={[s.kpi, paysage ? { width: "16.66%" } : {}]}>
               <View style={s.kpiBox}><Text style={s.petit}>{l}</Text><Text style={s.kpiV}>{v}</Text><Text style={s.petit}>{d}</Text></View>
             </View>
           ))}
@@ -197,7 +236,7 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
       </Page>
 
       {/* ---------- Page 2 : bilan prévisionnel ---------- */}
-      <Page size="A4" style={s.page}>
+      <Page size={taille} style={stylePage}>
         <Entete titre={titre} />
         <Text style={s.h1}>Bilan prévisionnel</Text>
         <View style={s.deux}>
@@ -238,25 +277,15 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
             <L l="Marge sur prix de revient" v={pct(r.margeSurPrixRevient)} />
             <L l="Rendement des fonds propres" v={pct(r.rendementFondsPropres)} />
             <L l="Durée de l'opération" v={`${h.financement.dureeMois} mois`} />
-            {a.sens.length > 0 && (
-              <>
-                <Text style={s.h2}>Sensibilité à la négociation</Text>
-                <View style={s.th}><Text style={{ width: "22%" }}>Remise</Text><Text style={{ width: "30%", textAlign: "right" }}>Prix</Text><Text style={{ width: "16%", textAlign: "right" }}>Bas</Text><Text style={{ width: "16%", textAlign: "right" }}>Moyen</Text><Text style={{ width: "16%", textAlign: "right" }}>Haut</Text></View>
-                {a.sens.map((l) => (
-                  <View key={l[0].remise} style={s.tr}>
-                    <Text style={{ width: "22%" }}>- {pct(l[0].remise, 0)}</Text><Text style={{ width: "30%", textAlign: "right" }}>{eur(l[0].prix)}</Text>
-                    {l.map((x) => <Text key={x.scenario} style={{ width: "16%", textAlign: "right" }}>{pct(x.margeSurCA)}</Text>)}
-                  </View>
-                ))}
-              </>
-            )}
+            {!paysage && sensibiliteNego}
           </View>
+          {paysage && a.sens.length > 0 && <View style={[s.col, { flex: 0.9 }]}>{sensibiliteNego}</View>}
         </View>
         <Pied />
       </Page>
 
       {/* ---------- Page : travaux et démarches ---------- */}
-      <Page size="A4" style={s.page}>
+      <Page size={taille} style={stylePage}>
         <Entete titre={titre} />
         <Text style={s.h1}>Travaux et démarches</Text>
         <View style={s.deux}>
@@ -306,7 +335,7 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
       </Page>
 
       {/* ---------- Page 3 : financement et structure ---------- */}
-      <Page size="A4" style={s.page}>
+      <Page size={taille} style={stylePage}>
         <Entete titre={titre} />
         <Text style={s.h1}>Financement et structure</Text>
         <View style={s.deux}>
@@ -367,15 +396,17 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
       </Page>
 
       {/* ---------- Page 4 : marché et données publiques ---------- */}
-      <Page size="A4" style={s.page}>
+      <Page size={taille} style={stylePage}>
         <Entete titre={titre} />
         <Text style={s.h1}>Marché et données publiques</Text>
+        <View style={paysage ? { flexDirection: "row", gap: 24 } : {}}>
+        <View style={paysage ? { flex: 1.45 } : {}}>
         {comps && (
           <>
             <Text style={s.h2}>Ventes comparables (DVF)</Text>
             <Text>Médiane {m2(comps.stats.mediane)} · fourchette {m2(comps.stats.p25)} à {m2(comps.stats.p75)} · {comps.stats.nb} ventes dans un rayon de {comps.rayon} m.</Text>
             <View style={[s.th, { marginTop: 6 }]}><Text style={{ width: "13%" }}>Date</Text><Text style={{ width: "45%" }}>Adresse</Text><Text style={{ width: "10%", textAlign: "right" }}>Dist.</Text><Text style={{ width: "10%", textAlign: "right" }}>Surface</Text><Text style={{ width: "12%", textAlign: "right" }}>Prix</Text><Text style={{ width: "10%", textAlign: "right" }}>€/m²</Text></View>
-            {comps.ventes.slice(0, 18).map((v) => (
+            {comps.ventes.slice(0, paysage ? 14 : 18).map((v) => (
               <View key={v.id} style={s.tr}>
                 <Text style={{ width: "13%" }}>{v.date}</Text><Text style={{ width: "45%" }}>{v.adresse}</Text><Text style={{ width: "10%", textAlign: "right" }}>{v.distance} m</Text>
                 <Text style={{ width: "10%", textAlign: "right" }}>{Math.round(v.surface)} m²</Text><Text style={{ width: "12%", textAlign: "right" }}>{eur(v.prix)}</Text><Text style={{ width: "10%", textAlign: "right" }}>{esp(Math.round(v.prixM2).toLocaleString("fr-FR"))}</Text>
@@ -383,8 +414,10 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
             ))}
           </>
         )}
-        <View style={s.deux}>
-          <View style={s.col}>
+        </View>
+        <View style={paysage ? { flex: 1 } : {}}>
+        <View style={paysage ? {} : s.deux}>
+          <View style={paysage ? {} : s.col}>
             <Text style={s.h2}>Urbanisme</Text>
             {zone ? (
               <>
@@ -394,7 +427,7 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
               </>
             ) : <Text>Zonage non publié sur le Géoportail de l'Urbanisme.</Text>}
           </View>
-          <View style={s.col}>
+          <View style={paysage ? {} : s.col}>
             <Text style={s.h2}>Risques</Text>
             {risq ? (
               <>
@@ -407,9 +440,11 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
         {fiche?.dpe.ok && fiche.dpe.data.length > 0 && (
           <>
             <Text style={s.h2}>DPE à proximité (150 m)</Text>
-            {fiche.dpe.data.slice(0, 8).map((d) => <Text key={d.numero}>Classe {d.etiquette} · {d.adresse} · {d.typeBatiment}, {d.surface ?? "?"} m² · {d.date}</Text>)}
+            {fiche.dpe.data.slice(0, paysage ? 6 : 8).map((d) => <Text key={d.numero}>Classe {d.etiquette} · {d.adresse} · {d.typeBatiment}, {d.surface ?? "?"} m² · {d.date}</Text>)}
           </>
         )}
+        </View>
+        </View>
         <Text style={[s.petit, { marginTop: 14 }]}>
           Sources : DVF géolocalisées (Etalab), Parcellaire Express (IGN), Géoportail de l'Urbanisme, Géorisques, base DPE de l'ADEME. Données extraites le {new Date().toLocaleDateString("fr-FR")}.
           Bilan établi selon la méthode du bilan prévisionnel marchand de biens (TVA, IS 15 % / 25 %). Document indicatif.

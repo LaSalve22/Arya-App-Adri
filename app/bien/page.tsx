@@ -230,36 +230,40 @@ function Analyse() {
         )}
       </div>
 
-      <nav className="barre-onglets" role="tablist" aria-label="Étapes de l'analyse">
-        {ONGLETS.map(([k, l]) => (
-          <button key={k} role="tab" aria-selected={onglet === k} onClick={() => aller(k)}>{l}</button>
-        ))}
-      </nav>
+      <div className="analyse">
+        <nav className="barre-onglets" role="tablist" aria-label="Étapes de l'analyse">
+          {ONGLETS.map(([k, l], i) => (
+            <button key={k} role="tab" aria-selected={onglet === k} onClick={() => aller(k)}><span className="etape">{String(i + 1).padStart(2, "0")}</span>{l}</button>
+          ))}
+        </nav>
 
-      {err && <p className="erreur">{err}</p>}
-      {props && AVEC_BANDEAU.includes(onglet) && <Bandeau a={props.a} margeCible={props.etat.margeCible} />}
+        <div className="pile contenu">
+          {err && <p className="erreur">{err}</p>}
+          {props && AVEC_BANDEAU.includes(onglet) && <Bandeau a={props.a} margeCible={props.etat.margeCible} />}
 
-      {onglet === "recherche" && <div className="carte"><Recherche titre={false} /></div>}
-      {sansBien && onglet !== "recherche" && <p className="alerte">Choisis d'abord un bien dans l'onglet « Recherche ».</p>}
-      {props && !sansBien && (
-        <>
-          {onglet === "bien" && <Nature {...props} />}
-          {onglet === "marche" && <Marche {...props} />}
-          {onglet === "similaires" && <Similaires {...props} />}
-          {onglet === "profil" && <Profil {...props} />}
-          {onglet === "rp" && <ComparatifRP h={props.etat.hypotheses} rp={props.etat.rp} setRp={(rp) => setEtat({ ...props.etat, rp })} mode="params" />}
-          {onglet === "comparatif" && (
-            <ComparatifRP h={props.etat.hypotheses} rp={props.etat.rp} setRp={(rp) => setEtat({ ...props.etat, rp })} mode="tableau" netAssocies={props.a.sortie.distribue ? props.a.sortie.netAssocies : null} />
+          {onglet === "recherche" && <div className="carte"><Recherche titre={false} /></div>}
+          {sansBien && onglet !== "recherche" && <p className="alerte">Choisis d'abord un bien dans l'onglet « Recherche ».</p>}
+          {props && !sansBien && (
+            <>
+              {onglet === "bien" && <Nature {...props} />}
+              {onglet === "marche" && <Marche {...props} />}
+              {onglet === "similaires" && <Similaires {...props} />}
+              {onglet === "profil" && <Profil {...props} />}
+              {onglet === "rp" && <ComparatifRP h={props.etat.hypotheses} rp={props.etat.rp} setRp={(rp) => setEtat({ ...props.etat, rp })} mode="params" />}
+              {onglet === "comparatif" && (
+                <ComparatifRP h={props.etat.hypotheses} rp={props.etat.rp} setRp={(rp) => setEtat({ ...props.etat, rp })} mode="tableau" netAssocies={props.a.sortie.distribue ? props.a.sortie.netAssocies : null} />
+              )}
+              {onglet === "bp" && <Bilan etat={props.etat} setEtat={setEtat} prefillDVF={prefill} />}
+              {onglet === "travaux" && <Travaux {...props} />}
+              {onglet === "frais-financiers" && <FraisFinanciers {...props} />}
+              {onglet === "financement" && <Financement {...props} />}
+              {onglet === "couts" && <CoutsTechniquesOnglet {...props} />}
+              {onglet === "vente" && <FraisVenteOnglet {...props} />}
+              {onglet === "recap" && <Recap {...props} />}
+            </>
           )}
-          {onglet === "bp" && <Bilan etat={props.etat} setEtat={setEtat} prefillDVF={prefill} />}
-          {onglet === "travaux" && <Travaux {...props} />}
-          {onglet === "frais-financiers" && <FraisFinanciers {...props} />}
-          {onglet === "financement" && <Financement {...props} />}
-          {onglet === "couts" && <CoutsTechniquesOnglet {...props} />}
-          {onglet === "vente" && <FraisVenteOnglet {...props} />}
-          {onglet === "recap" && <Recap {...props} />}
-        </>
-      )}
+        </div>
+      </div>
     </div>
   );
 }
