@@ -18,8 +18,20 @@ export interface AnnonceAnalysee {
 
 const nombre = (s: string) => parseFloat(s.replace(/[\s  .]/g, "").replace(",", "."));
 
+/** Corrige les erreurs typiques de lecture d'une capture d'écran (OCR). */
+export function nettoyerOCR(texte: string): string {
+  return texte
+    .replace(/\u00a0|\u202f/g, " ")
+    // « 120 0OO » → « 120 000 »
+    .replace(/\b(\d{1,3})([ .])([0-9oO]{3})\b/g, (_m, a: string, sp: string, b: string) => a + sp + b.replace(/[oO]/g, "0"))
+    // « 69 m2 », « 69 m? », « 69 rn2 », « 69 m 2 » → « 69 m² »
+    .replace(/(\d)\s*(?:m\s?[2²?'’]|rn[2²])/g, "$1 m²")
+    // « 120 000 E », « 120 000 EUR » → « 120 000 € »
+    .replace(/(\d{1,3}(?:[ .]\d{3})+)\s*(?:EUR|E)\b/g, "$1 €");
+}
+
 export function analyserAnnonce(texte: string): AnnonceAnalysee {
-  const t = texte.replace(/ | /g, " ");
+  const t = nettoyerOCR(texte);
   const bas = t.toLowerCase();
   const r: AnnonceAnalysee = {
     prix: null, surface: null, terrain: null, pieces: null, chambres: null, type: null, dpe: null, codePostal: null, ville: null, champsTrouves: [],

@@ -24,4 +24,12 @@ describe("analyse d'annonce", () => {
     const a = analyserAnnonce("Maison 5 pièces 120 m²\n249 000 €\nLézignan-Corbières 11200\nSurface du terrain\n800 m²\nClasse énergieF");
     expect(a).toMatchObject({ prix: 249000, surface: 120, terrain: 800, codePostal: "11200", ville: "Lézignan-Corbières", dpe: "F" });
   });
+  it("texte lu sur une capture d'écran (erreurs OCR)", () => {
+    const a = analyserAnnonce("Appartement 3 pièces 69 m?\n120 0OO E\nNarbonne 11100\nSurface habitable\n69 m2\nClasse énergie D");
+    expect(a).toMatchObject({ prix: 120000, surface: 69, codePostal: "11100", ville: "Narbonne", dpe: "D", type: "Appartement" });
+  });
+  it("prix avec EUR et surface en rn2", () => {
+    const a = analyserAnnonce("Maison 5 pièces 120 rn2 - 249 000 EUR - Lézignan-Corbières 11200");
+    expect(a).toMatchObject({ prix: 249000, surface: 120, codePostal: "11200", type: "Maison" });
+  });
 });
