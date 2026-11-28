@@ -2,6 +2,7 @@
 // Chargé uniquement au clic sur « Télécharger le PDF » (@react-pdf/renderer est volumineux).
 import { Document, Font, Line, Page, Path, Polyline, Rect, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import { TRACE_MONOGRAMME } from "@/components/Logo";
+import { NATURES_LOT, parUnite } from "@/lib/dvfLots";
 import { FORFAITS, LIBELLES_ETATS, LIBELLES_PIECES, chiffrer } from "@/lib/travaux/plan";
 import { LIBELLES_GAMME } from "@/lib/travaux/catalogue";
 import { demarchesDuBien, LIBELLES_INTERLOCUTEURS } from "@/lib/travaux/demarches";
@@ -264,7 +265,12 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
           </View>
           <View style={s.col}>
             <Text style={s.h2}>Recettes</Text>
-            {r.recettes.lots.map((l, i) => <L key={i} l={`${l.libelle}${h.lots[i]?.surface ? ` (${h.lots[i].surface} m²)` : ""}`} v={eur(l.prix)} />)}
+            {r.recettes.lots.map((l, i) => {
+              const lot = h.lots[i];
+              const nat = lot?.nature ? NATURES_LOT.find(([k]) => k === lot.nature)?.[1] : null;
+              const detail = [nat, lot?.surface && !parUnite(lot.nature) ? `${lot.surface} m²` : null].filter(Boolean).join(", ");
+              return <L key={i} l={`${l.libelle}${detail ? ` (${detail})` : ""}`} v={eur(l.prix)} />;
+            })}
             <L l="Chiffre d'affaires" v={eur(r.recettes.chiffreAffaires)} gras />
             <Text style={s.h2}>Résultat</Text>
             <L l="Marge brute TTC (CA - foncier)" v={eur(r.margeBruteTTC)} />

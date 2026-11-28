@@ -1,9 +1,10 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { calculerBilan, prixLot } from "@/lib/bilan/calcul";
 import { prixMaxPourMarge, sensibilite } from "@/lib/bilan/nego";
 import { LIBELLES_POSTES } from "@/lib/bilan/defaut";
-import type { Hypotheses, Lot, PosteTravaux, RegimeTVA, ScenarioRevente } from "@/lib/bilan/types";
+import type { Hypotheses, Lot, NatureLot, PosteTravaux, RegimeTVA, ScenarioRevente } from "@/lib/bilan/types";
+import { NATURES_LOT, estimerLot, natureParDefaut, parUnite } from "@/lib/dvfLots";
 import type { Offre } from "@/lib/projets";
 import type { EtatAnalyse } from "@/lib/etat";
 import { classeMarge, dateFr, eur, m2, pct } from "@/lib/format";
@@ -57,8 +58,37 @@ function Ligne({ libelle, aide, children }: { libelle: string; aide?: string; ch
   );
 }
 
-export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; setEtat: (e: EtatBilan) => void; prefillDVF?: () => Lot[] | null }) {
+export default function Bilan({ etat, setEtat, bien }: { etat: EtatBilan; setEtat: (e: EtatBilan) => void; bien?: { lon: number; lat: number; insee: string } | null }) {
   const h = etat.hypotheses;
+  // Estimation DVF des lots : l'état courant est relu après la réponse du serveur.
+  const etatRef = useRef(etat);
+  etatRef.current = etat;
+  const natureDefaut = natureParDefaut(etat.caracteristiques.type);
+  const [infosLots, setInfosLots] = useState<Record<number, string>>({});
+  const minuteries = useRef<Record<number, ReturnType<typeof setTimeout>>>({});
+  async function estimerLots(indices: number[], lots: Lot[], forcer = false) {
+    if (!bien) return;
+    const res = await Promise.all(indices.map((i) => estimerLot(lots[i], bien, natureDefaut)));
+    const cur = etatRef.current;
+    const nouveaux = cur.hypotheses.lots.map((l, k) => {
+      const j = indices.indexOf(k);
+      if (j < 0) return l;
+      const base = { ...l, ...lots[k] };
+      const e = res[j];
+      if (!e || (base.prixManuel && !forcer)) return base;
+      return { ...base, prixDown: e.prixBas, prixTop: e.prixHaut, prixManuel: false };
+    });
+    setInfosLots((p) => ({ ...p, ...Object.fromEntries(indices.map((i, j) => [i, res[j] ? `DVF : ${res[j]!.nb} ventes · ${res[j]!.rayon} m` : "pas assez de ventes DVF"])) }));
+    setEtat({ ...cur, hypotheses: { ...cur.hypotheses, lots: nouveaux } });
+  }
+  /** Nature ou surface modifiée : le prix DVF suit, sauf prix saisi à la main. */
+  function majLotAuto(i: number, p: Partial<Lot>) {
+    const lots = h.lots.map((l, k) => (k === i ? { ...l, ...p } : l));
+    setEtat({ ...etat, hypotheses: { ...h, lots } });
+    if (lots[i].prixManuel || !bien) return;
+    clearTimeout(minuteries.current[i]);
+    minuteries.current[i] = setTimeout(() => estimerLots([i], lots), 500);
+  }
   const maj = (p: Partial<Hypotheses>) => setEtat({ ...etat, hypotheses: { ...h, ...p } });
   const r = useMemo(() => calculerBilan(h), [h]);
   const remise = etat.prixAffiche > 0 ? 1 - h.prixAcquisition / etat.prixAffiche : 0;
@@ -188,7 +218,7 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
         <details className="bloc" open>
           <summary><span>Achat et charge foncière</span><span className="num">{eur(r.foncier.total.ttc)}</span></summary>
           <div>
-            <table className="t">
+            <div className="defile"><table className="t">
               <tbody>
                 <Ligne libelle="Prix d'acquisition">{eur(h.prixAcquisition)}</Ligne>
                 <Ligne libelle="Indemnité d'éviction"><Num v={h.indemniteEviction} set={(n) => maj({ indemniteEviction: n })} /></Ligne>
@@ -204,7 +234,7 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
                 </Ligne>
                 <Ligne libelle="Apporteur d'affaires (TTC)"><Num v={h.apporteurAffaires} set={(n) => maj({ apporteurAffaires: n })} /></Ligne>
               </tbody>
-            </table>
+            </table></div>
           </div>
         </details>
 
@@ -281,27 +311,32 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
                   {SCENARIOS_CHOIX.map(([s, l]) => <option key={s} value={s}>{l}</option>)}
                 </select>
               </label>
-              {prefillDVF && (
-                <button className="btn" onClick={() => { const l = prefillDVF(); if (l) maj({ lots: l }); }}>
+              {bien && (
+                <button className="btn" onClick={() => estimerLots(h.lots.map((_, i) => i), h.lots, true)}>
                   Pré-remplir avec les comparables DVF
                 </button>
               )}
             </div>
             <div className="defile">
               <table className="t">
-                <thead><tr><th>Lot</th><th className="n">Surface</th><th className="n">Prix bas</th><th className="n">Prix haut</th><th className="n">Moyen</th><th className="n">Prix retenu</th><th className="n">€/m² retenu</th><th></th></tr></thead>
+                <thead><tr><th>Lot</th><th>Nature</th><th className="n">Surface</th><th className="n">Prix bas</th><th className="n">Prix haut</th><th className="n">Moyen</th><th className="n">Prix retenu</th><th className="n">€/m² retenu</th><th></th></tr></thead>
                 <tbody>
                   {h.lots.map((l, i) => {
                     const moy = l.prixDown != null && l.prixTop != null ? (l.prixDown + l.prixTop) / 2 : l.prixDown ?? l.prixTop ?? 0;
                     return (
                       <tr key={i}>
-                        <td><input value={l.libelle} onChange={(e) => setLot(i, { libelle: e.target.value })} /></td>
-                        <td className="n"><Num v={l.surface ?? 0} pas={1} largeur={70} set={(n) => setLot(i, { surface: n })} /></td>
-                        <td className="n"><Num v={l.prixDown ?? 0} set={(n) => setLot(i, { prixDown: n })} /></td>
-                        <td className="n"><Num v={l.prixTop ?? 0} set={(n) => setLot(i, { prixTop: n })} /></td>
+                        <td><input value={l.libelle} onChange={(e) => setLot(i, { libelle: e.target.value })} style={{ minWidth: 140 }} aria-label="Nom du lot" />{infosLots[i] && <div className="doux petit">{infosLots[i]}</div>}</td>
+                        <td>
+                          <select value={l.nature ?? natureDefaut} onChange={(e) => majLotAuto(i, { nature: e.target.value as NatureLot })} aria-label="Nature du lot">
+                            {NATURES_LOT.map(([k, lib]) => <option key={k} value={k}>{lib}</option>)}
+                          </select>
+                        </td>
+                        <td className="n">{parUnite(l.nature ?? natureDefaut) ? <span className="doux petit">à l'unité</span> : <Num v={l.surface ?? 0} pas={1} largeur={70} set={(n) => majLotAuto(i, { surface: n })} />}</td>
+                        <td className="n"><Num v={l.prixDown ?? 0} set={(n) => setLot(i, { prixDown: n, prixManuel: true })} /></td>
+                        <td className="n"><Num v={l.prixTop ?? 0} set={(n) => setLot(i, { prixTop: n, prixManuel: true })} /></td>
                         <td className="n">{eur(moy)}</td>
                         <td className="n"><Num v={h.scenario === "saisi" ? (l.prixSaisi ?? moy) : prixLot(l, h.scenario)} set={(n) => maj({ scenario: "saisi", lots: h.lots.map((x, k) => (k === i ? { ...x, prixSaisi: n } : { ...x, prixSaisi: x.prixSaisi ?? prixLot(x, h.scenario) })) })} /></td>
-                        <td className="n">{l.surface ? m2(prixLot(l, h.scenario) / l.surface) : "—"}</td>
+                        <td className="n">{parUnite(l.nature ?? natureDefaut) ? `${eur(prixLot(l, h.scenario))}/u` : l.surface ? m2(prixLot(l, h.scenario) / l.surface) : "—"}</td>
                         <td><button className="lien" onClick={() => maj({ lots: h.lots.filter((_, k) => k !== i) })}>Retirer</button></td>
                       </tr>
                     );
@@ -309,7 +344,7 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
                 </tbody>
               </table>
             </div>
-            <div><button className="btn" onClick={() => maj({ lots: [...h.lots, { libelle: `Lot ${h.lots.length + 1}`, prixDown: null, prixTop: null, tva: 0 }] })}>Ajouter un lot</button></div>
+            <div><button className="btn" onClick={() => maj({ lots: [...h.lots, { libelle: `Lot ${h.lots.length + 1}`, nature: natureDefaut, prixDown: null, prixTop: null, tva: 0 }] })}>Ajouter un lot</button></div>
           </div>
         </details>
       </div>

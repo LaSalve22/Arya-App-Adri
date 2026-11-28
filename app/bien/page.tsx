@@ -21,6 +21,7 @@ import { analyser } from "@/lib/analyse";
 import { profilParDefaut } from "@/lib/bilan/profil";
 import { completerOptionsRP } from "@/lib/bilan/residence";
 import type { Lot } from "@/lib/bilan/types";
+import { estimerLot, natureParDefaut } from "@/lib/dvfLots";
 import { enregistrerProjet, lireProjet, nouvelId, type Projet } from "@/lib/projets";
 
 const ONGLETS = [
@@ -164,23 +165,22 @@ function Analyse() {
       .catch(() => {});
   }, [fiche, typeComp, surfaceComp]);
 
-  const prefill = useCallback((): Lot[] | null => {
-    if (!comps?.stats.nb || !etat) return null;
-    return etat.hypotheses.lots.map((l) => {
-      const s = l.surface || surfaceComp || 0;
-      if (!s) return l;
-      return { ...l, surface: s, prixDown: Math.round((comps.stats.p25 * s) / 1000) * 1000, prixTop: Math.round((comps.stats.p75 * s) / 1000) * 1000 };
-    });
-  }, [comps, etat, surfaceComp]);
-
-  // Pré-remplissage de la revente dès l'arrivée des comparables, si rien n'est saisi.
+  // Pré-remplissage de la revente dès que le bien est localisé, si rien n'est saisi : chaque lot selon sa nature.
+  const bienDVF = useMemo(() => (fiche?.codeInsee ? { lon: fiche.lon, lat: fiche.lat, insee: fiche.codeInsee } : null), [fiche]);
   useEffect(() => {
-    if (!etat || projet || !comps?.stats.nb) return;
+    if (!etat || projet || !bienDVF) return;
     if (etat.hypotheses.lots.some((l) => l.prixDown != null || l.prixTop != null)) return;
-    const lots = prefill();
-    if (lots) setEtat({ ...etat, hypotheses: { ...etat.hypotheses, lots } });
+    const nature = natureParDefaut(etat.caracteristiques.type);
+    const lots = etat.hypotheses.lots.map((l) => ({ ...l, surface: l.surface || surfaceComp || undefined }));
+    Promise.all(lots.map((l) => estimerLot(l, bienDVF, nature))).then((res) => {
+      setEtatBrut((cur) => {
+        if (!cur || cur.hypotheses.lots.some((l) => l.prixDown != null || l.prixTop != null)) return cur;
+        const nouveaux = cur.hypotheses.lots.map((l, k) => (res[k] ? { ...l, ...lots[k], prixDown: res[k]!.prixBas, prixTop: res[k]!.prixHaut } : l));
+        return synchroniserPourcentages({ ...cur, hypotheses: { ...cur.hypotheses, lots: nouveaux } });
+      });
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [comps]);
+  }, [bienDVF]);
 
   const a = useMemo(() => (etat ? analyser(etat) : null), [etat]);
   const sansBien = !projetId && !sp.get("lon") && !sp.get("idu") && !sp.get("section");
@@ -257,7 +257,7 @@ function Analyse() {
               {onglet === "comparatif" && (
                 <ComparatifRP h={props.etat.hypotheses} rp={props.etat.rp} setRp={(rp) => setEtat({ ...props.etat, rp })} mode="tableau" netAssocies={props.a.sortie.distribue ? props.a.sortie.netAssocies : null} />
               )}
-              {onglet === "bp" && <Bilan etat={props.etat} setEtat={setEtat} prefillDVF={prefill} />}
+              {onglet === "bp" && <Bilan etat={props.etat} setEtat={setEtat} bien={bienDVF} />}
               {onglet === "travaux" && <Travaux {...props} />}
               {onglet === "frais-financiers" && <FraisFinanciers {...props} />}
               {onglet === "financement" && <Financement {...props} />}

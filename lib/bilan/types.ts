@@ -47,8 +47,14 @@ export interface BudgetTravaux {
   };
 }
 
+/** Nature d'un lot revendu : détermine les ventes DVF utilisées pour estimer son prix. */
+export type NatureLot = "Appartement" | "Maison" | "Local" | "Garage" | "Parking" | "Terrain";
+
 export interface Lot {
   libelle: string;
+  nature?: NatureLot;
+  /** Prix bas ou haut saisis à la main : l'estimation DVF automatique ne les remplace pas. */
+  prixManuel?: boolean;
   surface?: number;
   prixDown: number | null;
   prixTop: number | null;

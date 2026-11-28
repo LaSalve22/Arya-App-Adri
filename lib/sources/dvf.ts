@@ -2,7 +2,8 @@
 import { getTexteCacheDisque } from "./http";
 import { estEnOccitanie } from "./occitanie";
 
-export type TypeBien = "Maison" | "Appartement" | "Terrain" | "Local";
+/** « Dependance » : garage, box ou place de parking vendu seul (prix par unité, DVF ne donne pas de surface). */
+export type TypeBien = "Maison" | "Appartement" | "Terrain" | "Local" | "Dependance";
 
 export interface Vente {
   id: string;
@@ -89,6 +90,10 @@ export function parserDVF(csv: string): Vente[] {
     } else if (locaux.size === 0 && terrain && rows.some((r) => r[I.culture] === "AB")) {
       // Terrain à bâtir (code de nature de culture « AB »)
       ventes.push({ ...base, type: "Terrain", surface: terrain, pieces: null, terrain, prixM2: prix / terrain });
+    } else if (locaux.size === 0) {
+      // Garage, box ou parking vendu seul : prix par dépendance (surface = 1 unité)
+      const dep = new Set(rows.filter((r) => r[I.type] === "Dépendance").map((r) => `${r[I.parcelle]}|${r[I.surf]}|${rows.indexOf(r)}`));
+      if (dep.size) ventes.push({ ...base, type: "Dependance", surface: 1, pieces: null, terrain: null, prixM2: prix / dep.size });
     }
   }
   return ventes;
@@ -161,7 +166,7 @@ export function comparables(ventes: Vente[], c: CriteresComparables) {
   const min = c.minResultats ?? 8;
   const candidats = ventes
     .filter((v) => v.type === c.type && v.lon != null && v.lat != null)
-    .filter((v) => !c.surface || Math.abs(v.surface - c.surface) <= c.surface * tol)
+    .filter((v) => !c.surface || c.type === "Dependance" || Math.abs(v.surface - c.surface) <= c.surface * tol)
     .map((v) => ({ ...v, distance: Math.round(distanceM(c.lon, c.lat, v.lon!, v.lat!)) }));
   let rayon = c.rayonM ?? 500;
   let liste = candidats.filter((v) => v.distance <= rayon);
