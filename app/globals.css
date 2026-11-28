@@ -184,3 +184,24 @@ tr.sous-titre td { font-size: 11px; letter-spacing: .12em; text-transform: upper
 details.demarche { border: 1px solid var(--trait); border-radius: 8px; padding: 10px 12px; background: var(--champ); }
 details.demarche > summary { cursor: pointer; display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; font-weight: 600; }
 details.demarche > p { margin: 8px 0 0; }
+
+/* ---------- Écran large (PC 16/9) : menu des étapes à gauche, contenu sur toute la largeur ---------- */
+.analyse { display: grid; gap: 16px; }
+.contenu { min-width: 0; }
+.barre-onglets .etape { display: none; }
+@media (min-width: 1200px) {
+  main { max-width: 1760px; padding-left: 32px; padding-right: 32px; }
+  .analyse { grid-template-columns: 210px minmax(0, 1fr); gap: 28px; align-items: start; }
+  .barre-onglets { flex-direction: column; gap: 2px; position: sticky; top: 72px; overflow: visible; padding: 0 18px 0 0; border-bottom: 0; border-right: 1px solid var(--trait); max-height: calc(100vh - 90px); overflow-y: auto; }
+  .barre-onglets button, .barre-onglets button:hover { display: flex; gap: 10px; align-items: baseline; text-align: left; white-space: normal; border-radius: 8px; border-color: transparent; padding: 8px 10px; font-size: 13.5px; }
+  .barre-onglets button:hover { background: var(--carte); }
+  .barre-onglets .etape { display: inline; font-size: 10.5px; letter-spacing: .08em; color: #6b6b6b; font-variant-numeric: tabular-nums; }
+  .barre-onglets button[aria-selected="true"] .etape { color: #555; }
+  .bandeau { position: sticky; top: 64px; z-index: 800; }
+  .disposition-bilan { grid-template-columns: minmax(0, 1fr) 420px; gap: 24px; }
+  .collant { top: 150px; }
+}
+@media (min-width: 1600px) {
+  .grille3 { grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); }
+  .disposition-bilan { grid-template-columns: minmax(0, 1fr) 480px; }
+}

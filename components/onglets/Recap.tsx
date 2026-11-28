@@ -6,6 +6,7 @@ import { ChampRevente } from "@/components/Bilan";
 import { Num } from "./ui";
 import { classeMarge, eur, m2, pct } from "@/lib/format";
 import type { PropsOnglet } from "./types";
+import type { FormatPDF } from "@/components/pdf/RapportPDF";
 
 export function pointsDeVigilance({ etat, a, fiche, comps }: Pick<PropsOnglet, "etat" | "a" | "fiche" | "comps">): string[] {
   const v: string[] = [];
@@ -30,6 +31,7 @@ export function pointsDeVigilance({ etat, a, fiche, comps }: Pick<PropsOnglet, "
 export default function Recap(props: PropsOnglet) {
   const { etat, a, fiche, comps, libelle } = props;
   const [inclureRP, setInclureRP] = useState(false);
+  const [format, setFormat] = useState<FormatPDF>(() => (typeof window !== "undefined" && window.matchMedia("(min-width: 1024px)").matches ? "paysage" : "portrait"));
   const [etatPdf, setEtatPdf] = useState<"" | "encours" | "erreur">("");
   const h = etat.hypotheses;
   const cls = classeMarge(a.r.margeSurCA, etat.margeCible);
@@ -40,9 +42,9 @@ export default function Recap(props: PropsOnglet) {
     setEtatPdf("encours");
     try {
       const [{ pdf }, { default: RapportPDF }] = await Promise.all([import("@react-pdf/renderer"), import("@/components/pdf/RapportPDF")]);
-      const blob = await pdf(<RapportPDF etat={etat} a={a} fiche={fiche} comps={comps} libelle={libelle} inclureRP={inclureRP} vigilance={vigilance} />).toBlob();
+      const blob = await pdf(<RapportPDF etat={etat} a={a} fiche={fiche} comps={comps} libelle={libelle} inclureRP={inclureRP} vigilance={vigilance} format={format} />).toBlob();
       const commune = (fiche?.parcelle.ok && fiche.parcelle.data?.commune) || "bien";
-      const nom = `MADRIMMO_${commune.replace(/[^\wÀ-ÿ-]+/g, "-")}_${new Date().toISOString().slice(0, 10)}.pdf`;
+      const nom = `MADRIMMO_${commune.replace(/[^\wÀ-ÿ-]+/g, "-")}_${new Date().toISOString().slice(0, 10)}_${format}.pdf`;
       const url = URL.createObjectURL(blob);
       const lien = document.createElement("a");
       lien.href = url;
@@ -68,6 +70,10 @@ export default function Recap(props: PropsOnglet) {
         <div className="entete"><h2>Synthèse</h2>
           <div className="ligne">
             <label className="ligne petit"><input type="checkbox" checked={inclureRP} onChange={(e) => setInclureRP(e.target.checked)} /> Inclure le comparatif résidence principale</label>
+            <div className="segments" role="radiogroup" aria-label="Format du PDF">
+              <button type="button" role="radio" aria-checked={format === "portrait"} className={format === "portrait" ? "actif" : ""} onClick={() => setFormat("portrait")}>Smartphone · portrait A4</button>
+              <button type="button" role="radio" aria-checked={format === "paysage"} className={format === "paysage" ? "actif" : ""} onClick={() => setFormat("paysage")}>PC · paysage 16/9</button>
+            </div>
             <button className="btn principal" onClick={telecharger} disabled={etatPdf === "encours"}>{etatPdf === "encours" ? "Génération…" : "Télécharger le PDF"}</button>
           </div>
         </div>
