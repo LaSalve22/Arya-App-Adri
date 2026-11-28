@@ -47,7 +47,7 @@ export default function Similaires({ etat, setEtat, fiche }: PropsOnglet) {
       const s = l.surface || surface || 0;
       return s ? { ...l, surface: s, prixDown: Math.round((st.p25 * s) / 1000) * 1000, prixTop: Math.round((st.p75 * s) / 1000) * 1000 } : l;
     });
-    setEtat({ ...etat, hypotheses: { ...h, lots } });
+    setEtat({ ...etat, hypotheses: { ...h, lots, scenario: h.scenario === "saisi" ? "moyen" : h.scenario } });
   }
 
   return (

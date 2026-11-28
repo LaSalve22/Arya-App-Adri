@@ -42,7 +42,7 @@ export default function Marche({ etat, fiche, comps }: PropsOnglet) {
                   {st.parAnnee.map((a) => (
                     <tr key={a.annee}>
                       <td>{a.annee}</td><td className="n">{a.nb}</td><td className="n">{m2(a.p25)}</td><td className="n">{m2(a.mediane)}</td><td className="n">{m2(a.p75)}</td>
-                      <td><div style={{ height: 8, borderRadius: 4, background: "var(--accent)", width: `${(a.mediane / maxMed) * 100}%` }} /></td>
+                      <td><div style={{ height: 8, borderRadius: 4, background: "#d9d9d9", width: `${(a.mediane / maxMed) * 100}%` }} /></td>
                     </tr>
                   ))}
                 </tbody>

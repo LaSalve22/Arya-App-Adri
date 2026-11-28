@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { Adresse, Commune } from "@/lib/sources/geo";
 import type { AnnonceAnalysee } from "@/lib/annonce/parse";
 import ZoneCommune from "./ZoneCommune";
+import ImportCapture from "./ImportCapture";
 import { NOMS_DEPARTEMENTS } from "@/lib/sources/occitanie";
 
 type Onglet = "adresse" | "annonce" | "zone";
@@ -195,6 +196,7 @@ function ParAnnonce() {
   const a = res?.annonce;
   return (
     <div className="pile">
+      <ImportCapture onTexte={(t) => setTexte((avant) => (avant.trim() ? `${avant}\n\n${t}` : t))} />
       <textarea value={texte} onChange={(e) => setTexte(e.target.value)} placeholder="Collez ici le TEXTE de l'annonce (titre, prix, lieu, critères, description), pas le lien. Leboncoin, SeLoger, agence…" />
       <div className="ligne">
         <button className="btn principal" onClick={analyser} disabled={!texte.trim() || charge}>{charge ? "Analyse…" : "Analyser l'annonce"}</button>

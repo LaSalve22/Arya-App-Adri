@@ -3,6 +3,8 @@ import Link from "next/link";
 import "leaflet/dist/leaflet.css";
 import "./globals.css";
 
+export const viewport = { themeColor: "#000000", colorScheme: "dark" as const };
+
 export const metadata: Metadata = {
   title: "MADRIMMO",
   description: "Recherche et analyse de biens pour marchands de biens en Occitanie",

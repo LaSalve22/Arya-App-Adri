@@ -93,7 +93,7 @@ export default function ZoneCommune() {
                     <td>{a.annee}</td>
                     <td className="n">{a.nb}</td>
                     <td className="n">{m2(a.mediane)}</td>
-                    <td><div style={{ height: 8, borderRadius: 4, background: "var(--accent)", width: `${(a.mediane / maxMed) * 100}%` }} /></td>
+                    <td><div style={{ height: 8, borderRadius: 4, background: "#d9d9d9", width: `${(a.mediane / maxMed) * 100}%` }} /></td>
                   </tr>
                 ))}
               </tbody>

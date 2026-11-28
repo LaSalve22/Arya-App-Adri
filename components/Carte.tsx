@@ -23,10 +23,10 @@ export default function Carte({
           opacity={0.8}
           maxZoom={20}
         />
-        {parcelle && <GeoJSON key={JSON.stringify(parcelle).slice(0, 80)} data={parcelle as GeoJSON.GeoJsonObject} style={{ color: "#b7791f", weight: 3, fillOpacity: 0.25 }} />}
+        {parcelle && <GeoJSON key={JSON.stringify(parcelle).slice(0, 80)} data={parcelle as GeoJSON.GeoJsonObject} style={{ color: "#ffffff", weight: 2.5, fillColor: "#ffffff", fillOpacity: 0.12 }} />}
         {ventes?.map((v) =>
           v.lat != null && v.lon != null ? (
-            <CircleMarker key={v.id} center={[v.lat, v.lon]} radius={6} pathOptions={{ color: "#2f5d9b", fillOpacity: 0.7 }}>
+            <CircleMarker key={v.id} center={[v.lat, v.lon]} radius={6} pathOptions={{ color: "#bdbdbd", fillColor: "#bdbdbd", weight: 1, fillOpacity: 0.8 }}>
               <Tooltip>
                 {v.date} · {Math.round(v.surface)} m² · {Math.round(v.prix).toLocaleString("fr-FR")} € ({Math.round(v.prixM2).toLocaleString("fr-FR")} €/m²)
               </Tooltip>

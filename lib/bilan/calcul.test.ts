@@ -107,3 +107,18 @@ describe("négociation", () => {
     expect(t[0][2].margeSurCA).toBeGreaterThan(t[0][0].margeSurCA);
   });
 });
+
+describe("prix de revente saisi", () => {
+  it("le scénario saisi prend le prix saisi, sinon la moyenne", () => {
+    const h = hypothesesParDefaut();
+    h.prixAcquisition = 100000;
+    h.lots = [
+      { libelle: "A", prixDown: 100000, prixTop: 140000, prixSaisi: 150000, tva: 0 },
+      { libelle: "B", prixDown: 50000, prixTop: 70000, prixSaisi: null, tva: 0 },
+    ];
+    h.scenario = "saisi";
+    expect(calculerBilan(h).recettes.chiffreAffaires).toBe(150000 + 60000);
+    h.scenario = "moyen";
+    expect(calculerBilan(h).recettes.chiffreAffaires).toBe(120000 + 60000);
+  });
+});
