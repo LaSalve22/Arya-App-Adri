@@ -56,7 +56,8 @@ export function fraisFinanciers(h: Hypotheses): number {
   return f.montantEmprunte * f.tauxAnnuel * (f.dureeMois / 12) + f.fraisDossier;
 }
 
-export function prixLot(l: { prixDown: number | null; prixTop: number | null }, s: ScenarioRevente): number {
+export function prixLot(l: { prixDown: number | null; prixTop: number | null; prixSaisi?: number | null }, s: ScenarioRevente): number {
+  if (s === "saisi" && l.prixSaisi != null && Number.isFinite(l.prixSaisi)) return l.prixSaisi;
   const vals = [l.prixDown, l.prixTop].filter((v): v is number => v != null && !Number.isNaN(v));
   if (s === "down") return l.prixDown ?? l.prixTop ?? 0;
   if (s === "top") return l.prixTop ?? l.prixDown ?? 0;

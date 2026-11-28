@@ -90,7 +90,7 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
   const zone = fiche?.urbanisme.ok ? fiche.urbanisme.data.zone : null;
   const risq = fiche?.risques.ok ? fiche.risques.data : null;
   const bon = r.margeSurCA >= etat.margeCible;
-  const sc = { down: "bas", moyen: "moyen", top: "haut" } as const;
+  const sc = { down: "bas", moyen: "moyen", top: "haut", saisi: "saisi" } as const;
   const titre = `Dossier d'opération · ${libelle}`;
 
   return (

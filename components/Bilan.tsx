@@ -1,6 +1,6 @@
 "use client";
 import { useMemo, useState } from "react";
-import { calculerBilan } from "@/lib/bilan/calcul";
+import { calculerBilan, prixLot } from "@/lib/bilan/calcul";
 import { prixMaxPourMarge, sensibilite } from "@/lib/bilan/nego";
 import { LIBELLES_POSTES } from "@/lib/bilan/defaut";
 import type { Hypotheses, Lot, PosteTravaux, RegimeTVA, ScenarioRevente } from "@/lib/bilan/types";
@@ -12,6 +12,29 @@ export type EtatBilan = EtatAnalyse;
 
 const TAUX_TVA = [0.2, 0.1, 0.055];
 const SCENARIOS: [ScenarioRevente, string][] = [["down", "Bas"], ["moyen", "Moyen"], ["top", "Haut"]];
+const SCENARIOS_CHOIX: [ScenarioRevente, string][] = [...SCENARIOS, ["saisi", "Prix saisi"]];
+
+/** Champ « Prix de revente retenu » : fixe le prix total de revente (réparti sur les lots au prorata). */
+export function ChampRevente({ h, setH, largeur }: { h: Hypotheses; setH: (h: Hypotheses) => void; largeur?: number }) {
+  const total = (s: ScenarioRevente) => h.lots.reduce((a, l) => a + prixLot(l, s), 0);
+  const actuel = total(h.scenario);
+  function fixer(n: number) {
+    const base = h.lots.map((l) => prixLot(l, h.scenario === "saisi" ? "moyen" : h.scenario));
+    const somme = base.reduce((a, b) => a + b, 0);
+    const lots = h.lots.map((l, i) => ({ ...l, prixSaisi: h.lots.length === 1 ? n : Math.round(somme ? (n * base[i]) / somme : n / h.lots.length) }));
+    setH({ ...h, lots, scenario: "saisi" });
+  }
+  return (
+    <label className="champ">
+      Prix de revente retenu (€)
+      <Num v={Math.round(actuel)} largeur={largeur} set={fixer} />
+      <span className="petit doux">
+        DVF : bas {eur(total("down"))} · moyen {eur(total("moyen"))} · haut {eur(total("top"))}
+        {h.scenario === "saisi" && <> · <button type="button" className="lien" onClick={() => setH({ ...h, scenario: "moyen" })}>revenir aux prix DVF</button></>}
+      </span>
+    </label>
+  );
+}
 
 function Num({ v, set, pas = 1000, suffixe, largeur }: { v: number; set: (n: number) => void; pas?: number; suffixe?: string; largeur?: number }) {
   return (
@@ -74,6 +97,7 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
           <div className="grille3">
             <label className="champ">Prix affiché (€)<Num v={etat.prixAffiche} set={(n) => setEtat({ ...etat, prixAffiche: n, hypotheses: { ...h, prixAcquisition: Math.round(n * (1 - Math.max(0, remise))) } })} /></label>
             <label className="champ">Prix d'achat négocié (€)<Num v={h.prixAcquisition} set={(n) => maj({ prixAcquisition: n })} /></label>
+            <ChampRevente h={h} setH={(x) => setEtat({ ...etat, hypotheses: x })} />
             <label className="champ">Marge cible (bénéfice brut / CA)<Num v={Math.round(etat.margeCible * 1000) / 10} pas={0.5} suffixe="%" largeur={80} set={(n) => setEtat({ ...etat, margeCible: n / 100 })} /></label>
           </div>
           {etat.prixAffiche > 0 && (
@@ -247,7 +271,7 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
               <label className="champ">
                 Scénario de revente
                 <select value={h.scenario} onChange={(e) => maj({ scenario: e.target.value as ScenarioRevente })}>
-                  {SCENARIOS.map(([s, l]) => <option key={s} value={s}>{l}</option>)}
+                  {SCENARIOS_CHOIX.map(([s, l]) => <option key={s} value={s}>{l}</option>)}
                 </select>
               </label>
               {prefillDVF && (
@@ -258,7 +282,7 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
             </div>
             <div className="defile">
               <table className="t">
-                <thead><tr><th>Lot</th><th className="n">Surface</th><th className="n">Prix bas</th><th className="n">Prix haut</th><th className="n">Moyen</th><th className="n">€/m² moyen</th><th></th></tr></thead>
+                <thead><tr><th>Lot</th><th className="n">Surface</th><th className="n">Prix bas</th><th className="n">Prix haut</th><th className="n">Moyen</th><th className="n">Prix retenu</th><th className="n">€/m² retenu</th><th></th></tr></thead>
                 <tbody>
                   {h.lots.map((l, i) => {
                     const moy = l.prixDown != null && l.prixTop != null ? (l.prixDown + l.prixTop) / 2 : l.prixDown ?? l.prixTop ?? 0;
@@ -269,7 +293,8 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
                         <td className="n"><Num v={l.prixDown ?? 0} set={(n) => setLot(i, { prixDown: n })} /></td>
                         <td className="n"><Num v={l.prixTop ?? 0} set={(n) => setLot(i, { prixTop: n })} /></td>
                         <td className="n">{eur(moy)}</td>
-                        <td className="n">{l.surface ? m2(moy / l.surface) : "—"}</td>
+                        <td className="n"><Num v={h.scenario === "saisi" ? (l.prixSaisi ?? moy) : prixLot(l, h.scenario)} set={(n) => maj({ scenario: "saisi", lots: h.lots.map((x, k) => (k === i ? { ...x, prixSaisi: n } : { ...x, prixSaisi: x.prixSaisi ?? prixLot(x, h.scenario) })) })} /></td>
+                        <td className="n">{l.surface ? m2(prixLot(l, h.scenario) / l.surface) : "—"}</td>
                         <td><button className="lien" onClick={() => maj({ lots: h.lots.filter((_, k) => k !== i) })}>Retirer</button></td>
                       </tr>
                     );

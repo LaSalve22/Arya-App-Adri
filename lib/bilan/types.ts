@@ -43,6 +43,8 @@ export interface Lot {
   surface?: number;
   prixDown: number | null;
   prixTop: number | null;
+  /** Prix de revente fixé par l'utilisateur (scénario « saisi »). */
+  prixSaisi?: number | null;
   /** « dont TVA » saisi dans la colonne E des recettes. */
   tva: number;
 }
@@ -80,7 +82,7 @@ export interface FraisVente {
 }
 
 export type RegimeTVA = "marge" | "exoneration" | "total";
-export type ScenarioRevente = "down" | "moyen" | "top";
+export type ScenarioRevente = "down" | "moyen" | "top" | "saisi";
 
 export interface Hypotheses {
   // ACHAT + CHARGE FONCIÈRE

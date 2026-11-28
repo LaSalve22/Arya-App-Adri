@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
 import { LIBELLES_FORMES } from "@/lib/bilan/profil";
+import { ChampRevente } from "@/components/Bilan";
+import { Num } from "./ui";
 import { classeMarge, eur, m2, pct } from "@/lib/format";
 import type { PropsOnglet } from "./types";
 
@@ -66,6 +68,10 @@ export default function Recap(props: PropsOnglet) {
             <label className="ligne petit"><input type="checkbox" checked={inclureRP} onChange={(e) => setInclureRP(e.target.checked)} /> Inclure le comparatif résidence principale</label>
             <button className="btn principal" onClick={telecharger} disabled={etatPdf === "encours"}>{etatPdf === "encours" ? "Génération…" : "Télécharger le PDF"}</button>
           </div>
+        </div>
+        <div className="grille3">
+          <label className="champ">Prix d'achat (€)<Num v={h.prixAcquisition} set={(n) => props.setEtat({ ...etat, hypotheses: { ...h, prixAcquisition: n } })} /></label>
+          <ChampRevente h={h} setH={(x) => props.setEtat({ ...etat, hypotheses: x })} />
         </div>
         {etatPdf === "erreur" && <p className="erreur">La génération du PDF a échoué. Réessaie ; si ça persiste, envoie-moi une capture.</p>}
         <div className="grille3">

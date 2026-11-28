@@ -2,7 +2,7 @@
 // ce serveur ne fait qu'exposer les données publiques et le moteur de calcul.
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { z } from "zod";
-import { calculerBilan } from "../bilan/calcul";
+import { calculerBilan, prixLot } from "../bilan/calcul";
 import { hypothesesDepuisPartiel, type HypothesesPartielles } from "../bilan/defaut";
 import { prixMaxPourMarge, sensibilite } from "../bilan/nego";
 import { calculerResidencePrincipale, optionsRPParDefaut, prixMaxRP, type OptionsRP } from "../bilan/residence";
@@ -47,6 +47,7 @@ const entreeBilan = {
   travaux_detail: z.record(z.string(), z.any()).optional().describe("Budget travaux détaillé au format de l'Excel (grosOeuvre, secondOeuvre, honorairesTechniques, raccordements, voirie, surelevation, extension), chaque poste {montantTTC, tauxTVA, pctRenove}"),
   lots: z.array(lotSchema).optional().describe("Lots revendus. Par défaut un seul lot."),
   scenario: z.enum(["down", "moyen", "top"]).optional().describe("Scénario de revente : bas, moyen (défaut), haut"),
+  prix_revente: z.number().optional().describe("Prix de revente total retenu par l'utilisateur, en € : remplace les prix bas/haut (réparti au prorata des lots)"),
   regime_tva: z.enum(["marge", "exoneration", "total"]).optional(),
   taux_notaire: z.number().optional().describe("0.03 avec engagement de revente (défaut), 0.08 sinon"),
   montant_emprunte: z.number().optional(),
@@ -98,6 +99,14 @@ export function hypothesesDepuisEntree(e: EntreeBilan): Hypotheses {
       ? Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined).map(([k, v]) => [k, nettoyer(v)]))
       : o;
   const h = hypothesesDepuisPartiel(nettoyer(p) as HypothesesPartielles);
+  if (e.prix_revente != null) {
+    const base = h.lots.map((l) => prixLot(l, "moyen"));
+    const somme = base.reduce((a, b) => a + b, 0);
+    h.lots = (h.lots.length ? h.lots : [{ libelle: "Revente", prixDown: null, prixTop: null, tva: 0 }]).map((l, i, t) => ({
+      ...l, prixSaisi: t.length === 1 ? e.prix_revente! : Math.round(somme ? (e.prix_revente! * base[i]) / somme : e.prix_revente! / t.length),
+    }));
+    h.scenario = "saisi";
+  }
   if (e.sources_financement?.length) {
     h.financement.sources = e.sources_financement.map((x, i) => {
       const b = nouvelleSource(x.type as TypeSource, `s${i}`);
