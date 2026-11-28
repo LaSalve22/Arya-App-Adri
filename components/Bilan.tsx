@@ -192,10 +192,11 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
               <tbody>
                 <Ligne libelle="Prix d'acquisition">{eur(h.prixAcquisition)}</Ligne>
                 <Ligne libelle="Indemnité d'éviction"><Num v={h.indemniteEviction} set={(n) => maj({ indemniteEviction: n })} /></Ligne>
-                <Ligne libelle="Frais de notaire" aide="3 % avec engagement de revente (art. 1115 CGI), environ 8 % sinon">
+                <Ligne libelle="Frais de notaire" aide="4,5 % par prudence avec engagement de revente (art. 1115 CGI), 3 % au minimum, environ 8 % sinon">
                   <span className="ligne" style={{ justifyContent: "flex-end" }}>
                     <select value={h.tauxNotaire} onChange={(e) => maj({ tauxNotaire: Number(e.target.value) })}>
-                      <option value={0.03}>3 % · engagement de revente</option>
+                      <option value={0.045}>4,5 % · marchand de biens, prudent</option>
+                      <option value={0.03}>3 % · minimum avec engagement de revente</option>
                       <option value={0.08}>8 % · droit commun</option>
                     </select>
                     <span className="num">{eur(r.foncier.notaire.ttc)}</span>

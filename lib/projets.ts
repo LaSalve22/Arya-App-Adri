@@ -2,7 +2,7 @@
 import type { Hypotheses } from "./bilan/types";
 import type { OptionsRP } from "./bilan/residence";
 import type { ProfilMdB } from "./bilan/profil";
-import type { Caracteristiques, CoutsTechniques } from "./etat";
+import type { Caracteristiques, CleCout, CoutsTechniques } from "./etat";
 import type { PlanTravaux } from "./travaux/plan";
 
 export interface Offre {
@@ -32,6 +32,7 @@ export interface Projet {
   caracteristiques?: Caracteristiques;
   coutsTechniques?: CoutsTechniques;
   travauxPlan?: PlanTravaux;
+  coutsPct?: Partial<Record<CleCout, number>>;
   creeLe: string;
   majLe: string;
 }

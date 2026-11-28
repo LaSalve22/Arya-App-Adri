@@ -4,7 +4,7 @@ import type { SourceFinancement, TypeSource } from "./types";
 export const LIBELLES_SOURCES: Record<TypeSource, string> = {
   fonds_propres: "Fonds propres",
   compte_courant: "Comptes courants d'associés",
-  pret: "Prêt bancaire / ligne de crédit",
+  pret: "Ligne de crédit marchand (in fine, 24 mois max)",
   obligataire: "Levée obligataire / crowdfunding",
   associe_jv: "Associé en participation",
 };

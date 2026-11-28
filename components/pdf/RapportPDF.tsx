@@ -387,6 +387,10 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
           <>
             <Text style={s.h2}>Comparatif : résidence principale (nom propre, plus-value exonérée)</Text>
             <L l="Frais de notaire (droit commun)" v={eur(a.rp.notaire)} />
+            <L l="Apport personnel" v={eur(a.rp.banque.apport)} />
+            <L l={`Prêt immobilier ${etat.rp.dureePretAns ?? 20} ans`} v={`${eur(a.rp.banque.montantEmprunte)} · ${eur(a.rp.banque.mensualiteTotale)}/mois`} />
+            <L l="Revenus nets mensuels minimum (35 % d'endettement)" v={eur(a.rp.banque.revenuMinimum)} />
+            <L l={`Capital restant dû à la revente (${a.rp.dureeMois} mois)`} v={eur(a.rp.banque.capitalRestantRevente)} />
             <L l="Frais financiers et charges de détention" v={eur(a.rp.financement.total + a.rp.charges)} />
             <L l="Gain net, sans impôt sur la plus-value" v={eur(a.rp.gainNet)} gras />
             <Text style={s.petit}>Exonération soumise à une occupation effective en résidence principale ; des reventes répétées peuvent être requalifiées en activité de marchand de biens.</Text>

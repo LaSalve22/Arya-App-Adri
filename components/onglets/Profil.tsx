@@ -28,7 +28,7 @@ export default function Profil({ etat, setEtat, a }: PropsOnglet) {
           </Champ>
           <Champ label="Frais de notaire à l'achat">
             <select value={h.tauxNotaire} onChange={(e) => setEtat({ ...etat, hypotheses: { ...h, tauxNotaire: Number(e.target.value) } })}>
-              <option value={0.03}>3 % · engagement de revente sous 5 ans</option><option value={0.08}>8 % · droit commun</option>
+              <option value={0.045}>4,5 % · marchand de biens, prudent</option><option value={0.03}>3 % · minimum, engagement de revente sous 5 ans</option><option value={0.08}>8 % · droit commun</option>
             </select>
           </Champ>
           <Champ label="Bénéfice">
