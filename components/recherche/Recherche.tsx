@@ -2,10 +2,9 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Adresse, Commune } from "@/lib/sources/geo";
-import type { AnnonceAnalysee } from "@/lib/annonce/parse";
-import { analyserDescription } from "@/lib/travaux/dictee";
-import { encoderPlan } from "@/lib/travaux/lien";
-import { generalParDefaut, projetParDefaut } from "@/lib/travaux/plan";
+import Link from "next/link";
+import type { AnnonceImportee } from "@/lib/annonce/extracteur";
+import FicheAnnonce from "./FicheAnnonce";
 import ZoneCommune from "./ZoneCommune";
 import ImportCapture from "./ImportCapture";
 import { NOMS_DEPARTEMENTS } from "@/lib/sources/occitanie";
@@ -162,16 +161,15 @@ function ParAdresse() {
 }
 
 function ParAnnonce() {
-  const router = useRouter();
   const [texte, setTexte] = useState("");
-  const [res, setRes] = useState<{ annonce: AnnonceAnalysee; lieu: Adresse | null } | null>(null);
+  const [res, setRes] = useState<{ annonce: AnnonceImportee; guide?: string } | null>(null);
   const [err, setErr] = useState<string | null>(null);
-  const [adresse, setAdresse] = useState("");
   const [charge, setCharge] = useState(false);
 
   async function analyser() {
     setCharge(true);
     setErr(null);
+    setRes(null);
     const r = await fetch("/api/annonce", { method: "POST", body: JSON.stringify({ texte }) });
     const d = await r.json();
     setCharge(false);
@@ -179,57 +177,29 @@ function ParAnnonce() {
     setRes(d);
   }
 
-  async function ouvrir() {
-    if (!res) return;
-    const a = res.annonce;
-    let lieu = res.lieu;
-    if (adresse.trim()) {
-      const r = await fetch(`/api/adresse?q=${encodeURIComponent(adresse)}`);
-      const d = (await r.json()) as Adresse[];
-      if (r.ok && d[0]) lieu = d[0];
-    }
-    if (!lieu) return setErr("Ville introuvable en Occitanie : précisez l'adresse ou la commune.");
-    // Mots-clés de travaux de l'annonce (« à rénover », « simple vitrage », « fosse septique »…) → onglet Travaux pré-rempli.
-    const c = analyserDescription(texte);
-    const indices = c.forfait || Object.keys(c.general).length || Object.keys(c.projet).length;
-    const travaux = indices
-      ? encoderPlan({ mode: "forfait", forfait: c.forfait ?? null, pieces: c.forfait ? c.pieces : [], general: { ...generalParDefaut(), ...c.general }, projet: { ...projetParDefaut(), ...c.projet }, notes: "Indices relevés dans l'annonce." })
-      : undefined;
-    versFiche(router, {
-      lon: lieu.lon, lat: lieu.lat, label: lieu.label, insee: lieu.codeInsee,
-      type: a.type ?? "Maison", surface: a.surface, prix: a.prix, terrain: a.terrain, dpe: a.dpe, pieces: a.pieces,
-      approx: lieu.type === "municipality" ? 1 : undefined,
-      travaux,
-    });
-  }
-
-  const a = res?.annonce;
   return (
     <div className="pile">
+      <div className="alerte petit">
+        Le plus fiable : le bouton <strong>« Envoyer à MADRIMMO »</strong>, à installer une fois dans les favoris du navigateur. Il lit l'annonce
+        complète directement sur Leboncoin, SeLoger, Bien'ici, PAP ou un site d'agence. <Link href="/importer">L'installer</Link>
+      </div>
       <ImportCapture onTexte={(t) => setTexte((avant) => (avant.trim() ? `${avant}\n\n${t}` : t))} />
-      <textarea value={texte} onChange={(e) => setTexte(e.target.value)} placeholder="Collez ici le TEXTE de l'annonce (titre, prix, lieu, critères, description), pas le lien. Leboncoin, SeLoger, agence…" />
+      <textarea value={texte} onChange={(e) => setTexte(e.target.value)} placeholder="Colle le lien de l'annonce, ou son texte (titre, prix, lieu, critères, description)." />
       <div className="ligne">
-        <button className="btn principal" onClick={analyser} disabled={!texte.trim() || charge}>{charge ? "Analyse…" : "Analyser l'annonce"}</button>
-        <span className="doux petit">Lecture automatique simple : vérifiez les valeurs. L'agent IA prendra le relais plus tard.</span>
+        <button className="btn principal" onClick={analyser} disabled={!texte.trim() || charge}>{charge ? "Lecture…" : "Lire l'annonce"}</button>
+        <span className="doux petit">Chaque valeur reste modifiable avant l'analyse.</span>
       </div>
       {err && <p className="erreur">{err}</p>}
-      {a && (
-        <div className="carte pile">
-          <table className="t">
-            <tbody>
-              <tr><td>Type</td><td>{a.type ?? "—"}</td><td>Prix</td><td className="n">{a.prix ? a.prix.toLocaleString("fr-FR") + " €" : "—"}</td></tr>
-              <tr><td>Surface</td><td>{a.surface ? `${a.surface} m²` : "—"}</td><td>Terrain</td><td className="n">{a.terrain ? `${a.terrain} m²` : "—"}</td></tr>
-              <tr><td>Pièces</td><td>{a.pieces ?? "—"}</td><td>DPE</td><td className="n">{a.dpe ?? "—"}</td></tr>
-              <tr><td>Lieu</td><td colSpan={3}>{res?.lieu?.label ?? "non trouvé"}</td></tr>
-            </tbody>
-          </table>
-          <label className="champ">
-            Adresse précise si vous la connaissez (sinon l'analyse se fait au centre de la commune)
-            <input value={adresse} onChange={(e) => setAdresse(e.target.value)} placeholder="ex. 8 chemin des Vignes, Castelnau-le-Lez" />
-          </label>
-          <div><button className="btn principal" onClick={ouvrir}>Analyser ce bien</button></div>
+      {res?.guide && (
+        <div className="alerte pile" style={{ gap: 8 }}>
+          <p>{res.guide}</p>
+          <div className="ligne">
+            {res.annonce.url && <a className="btn" href={res.annonce.url} target="_blank" rel="noreferrer">Ouvrir l'annonce</a>}
+            <Link className="btn" href="/importer">Installer le favori</Link>
+          </div>
         </div>
       )}
+      {res && <FicheAnnonce key={JSON.stringify(res.annonce).length + (res.annonce.url ?? "")} initiale={res.annonce} />}
     </div>
   );
 }

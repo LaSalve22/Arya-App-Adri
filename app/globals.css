@@ -212,3 +212,17 @@ details.demarche > p { margin: 8px 0 0; }
 .bandeau-prix input { width: 100%; max-width: 150px; padding: 4px 8px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .bandeau-prix small { color: var(--doux); font-size: 11px; }
 @media (max-width: 640px) { .bandeau { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* En-tête sur petit écran : monogramme seul, liens resserrés */
+@media (max-width: 520px) {
+  header.barre { gap: 14px; }
+  header.barre .logo span { display: none; }
+  header.barre nav { gap: 14px; font-size: 13.5px; }
+  header.barre .zone { display: none; }
+}
+
+/* Liens présentés comme des boutons (favori, « Ouvrir l'annonce ») */
+a.btn { display: inline-block; font-weight: 600; color: var(--texte); border: 1px solid #333; background: transparent; border-radius: 6px; padding: 8px 14px; text-decoration: none; cursor: pointer; }
+a.btn:hover { border-color: #fff; }
+a.btn.principal { background: #fff; color: #000; border-color: #fff; }
+a.btn.principal:active { cursor: grabbing; }
