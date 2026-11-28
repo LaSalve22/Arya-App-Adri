@@ -6,3 +6,4 @@ next-env.d.ts
 public/ocr/
 *.local.json
 *.local.pdf
+docs/video/plans/

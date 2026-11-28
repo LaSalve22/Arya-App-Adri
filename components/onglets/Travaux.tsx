@@ -49,7 +49,8 @@ export function fusionnerCompris(etat: EtatAnalyse, c: Compris): EtatAnalyse {
     general: { ...p.general, ...c.general },
     projet: { ...p.projet, ...c.projet },
     gamme: c.gamme ?? p.gamme,
-    forfait: p.forfait ?? c.forfait ?? null,
+    // Le forfait compris n'est qu'une suggestion : il n'est appliqué au bilan que par un clic sur sa carte.
+    forfait: p.forfait,
   };
   const car = { ...etat.caracteristiques };
   if (c.surface && !car.surface) car.surface = c.surface;
