@@ -2,13 +2,13 @@ import { describe, expect, it } from "vitest";
 import { calculerBilan, basculeImmeubleNeuf } from "./calcul";
 import { hypothesesParDefaut } from "./defaut";
 import { prixMaxPourMarge, sensibilite } from "./nego";
-import type { Hypotheses, RegimeTVA } from "./types";
+import type { Hypotheses, RegimeApplique } from "./types";
 import cases from "./__fixtures__/cases.json";
 import excel from "./__fixtures__/excel_results.json";
 
 // Les fixtures viennent du classeur bilan_previsionnel_v3.xlsx rempli avec les mêmes
 // hypothèses puis recalculé par LibreOffice (voir scripts/excel-fidelite.md).
-function depuisFixture(regime: RegimeTVA): Hypotheses {
+function depuisFixture(regime: RegimeApplique): Hypotheses {
   const i = cases.inputs;
   const c = cases.cases[regime];
   const h = hypothesesParDefaut();
@@ -44,7 +44,7 @@ function depuisFixture(regime: RegimeTVA): Hypotheses {
 }
 
 describe("fidélité à l'Excel (recalcul LibreOffice)", () => {
-  for (const regime of ["marge", "exoneration", "total"] as RegimeTVA[]) {
+  for (const regime of ["marge", "exoneration", "total"] as RegimeApplique[]) {
     it(`régime ${regime}`, () => {
       const r = calculerBilan(depuisFixture(regime));
       const x = (excel as Record<string, Record<string, number | string>>)[regime];

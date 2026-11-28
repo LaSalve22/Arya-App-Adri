@@ -16,9 +16,14 @@ import { analyserAnnonce } from "../annonce/parse";
 import { calculerFinancement, nouvelleSource, planFinancement } from "../bilan/financement";
 import { calculerSortie, profilParDefaut, type FormeSociete } from "../bilan/profil";
 import type { TypeSource } from "../bilan/types";
+import { basculeImmeubleNeuf, regimeTVA } from "../bilan/calcul";
+import { budgetVide, hypothesesParDefaut } from "../bilan/defaut";
+import { FORFAITS, chiffrer, generalParDefaut, planParDefaut, projetParDefaut, proposerTravaux, reportDevis, type PlanTravaux } from "../travaux/plan";
+import { demarches, LIBELLES_INTERLOCUTEURS } from "../travaux/demarches";
+import { encoderPlan } from "../travaux/lien";
 
 export const INSTRUCTIONS = `MADRIMMO : outils d'analyse pour marchand de biens en Occitanie (départements 09, 11, 12, 30, 31, 32, 34, 46, 48, 65, 66, 81, 82).
-Réponds en français. Méthode de calcul = Excel « bilan prévisionnel » de l'utilisateur : frais de notaire 3 % (engagement de revente), aléas 6 % des travaux, TVA sur marge par défaut, IS 15 % jusqu'à 42 500 € puis 25 %. Marge visée : 15 % du CA (bénéfice brut / CA).
+Réponds en français. Méthode de calcul = Excel « bilan prévisionnel » de l'utilisateur : frais de notaire 3 % (engagement de revente), aléas 6 % des travaux, IS 15 % jusqu'à 42 500 € puis 25 %. Régime de TVA automatique par défaut : exonération pour un logement ancien, TVA sur la marge pour un terrain à bâtir ou une division foncière, TVA sur le prix total si les travaux requalifient l'immeuble en neuf. Marge visée : 15 % du CA (bénéfice brut / CA).
 Démarche type pour analyser un bien :
 1. chercher_adresse (ou analyser_annonce si l'utilisateur colle une annonce) ;
 2. fiche_bien (parcelle, PLU, risques, DPE voisins) ;
@@ -27,6 +32,7 @@ Démarche type pour analyser un bien :
 5. comparer_residence_principale si l'utilisateur envisage d'acheter en nom propre pour y habiter (plus-value exonérée, pas de TVA ni d'IS) ;
 6. plan_financement pour le montage (fonds propres, prêt, levée obligataire, associés) et le net pour les associés selon SAS ou SARL ;
 7. lien_appli pour donner le lien vers l'appli web où l'utilisateur peut jouer avec le curseur de négociation.
+Photos ou captures d'annonce : regarde chaque photo, identifie les pièces (séjour, cuisine, chambre, salle de bain, WC, entrée, extérieur), estime leur surface si possible et leur état (bon, à rafraîchir, à rénover, à refaire), et les éléments généraux visibles (tableau électrique ancien, convecteurs, simple vitrage, fissures, toiture, façade). Appelle ensuite proposer_travaux : il renvoie les forfaits (rafraîchissement 450 €/m², global 850 €/m², réhabilitation 1 200 €/m²), le devis détaillé par lots, la bascule de TVA, les démarches administratives et un lien qui pré-remplit l'onglet Travaux de l'appli. Dis ce que tu as vu sur les photos et ce que tu as supposé.
 Signale toujours les hypothèses manquantes (prix, état, budget travaux, DPE) et ce qui a été supposé. Les données DVF couvrent 2021 à aujourd'hui, ventes de la commune uniquement.`;
 
 const json = (data: unknown) => ({ content: [{ type: "text" as const, text: JSON.stringify(data, null, 1) }] });
@@ -48,7 +54,8 @@ const entreeBilan = {
   lots: z.array(lotSchema).optional().describe("Lots revendus. Par défaut un seul lot."),
   scenario: z.enum(["down", "moyen", "top"]).optional().describe("Scénario de revente : bas, moyen (défaut), haut"),
   prix_revente: z.number().optional().describe("Prix de revente total retenu par l'utilisateur, en € : remplace les prix bas/haut (réparti au prorata des lots)"),
-  regime_tva: z.enum(["marge", "exoneration", "total"]).optional(),
+  regime_tva: z.enum(["auto", "marge", "exoneration", "total"]).optional().describe("auto par défaut : déduit du projet et des travaux"),
+  nature_operation: z.enum(["logement_ancien", "terrain_a_batir", "division_fonciere"]).optional().describe("Pour le régime de TVA automatique (logement ancien par défaut)"),
   taux_notaire: z.number().optional().describe("0.03 avec engagement de revente (défaut), 0.08 sinon"),
   montant_emprunte: z.number().optional(),
   taux_emprunt: z.number().optional().describe("Taux annuel, ex. 0.045"),
@@ -80,7 +87,8 @@ export function hypothesesDepuisEntree(e: EntreeBilan): Hypotheses {
   const p: HypothesesPartielles = {
     prixAcquisition: e.prix_achat,
     tauxNotaire: e.taux_notaire,
-    regimeTVA: e.regime_tva,
+    regimeTVA: e.regime_tva ?? "auto",
+    natureOperation: e.nature_operation,
     scenario: e.scenario,
     honorairesVente: e.honoraires_vente,
     honorairesGestion: e.autres_frais,
@@ -317,12 +325,141 @@ export function creerServeur(origine: string): McpServer {
   );
 
   s.registerTool(
+    "proposer_travaux",
+    {
+      description:
+        "Propose les travaux d'un bien à partir de l'état de ses pièces (lu sur les photos ou captures de l'annonce, ou décrit par l'utilisateur) : forfaits au m², devis détaillé par lots (grilles de prix de l'utilisateur), % rénové par poste et bascule TVA (requalification en immeuble neuf), démarches administratives (DP, permis, ABF, copropriété, réseaux…) et lien qui pré-remplit l'onglet Travaux de l'appli.",
+      inputSchema: {
+        type_bien: z.enum(["Maison", "Appartement", "Immeuble", "Terrain"]).default("Appartement"),
+        surface: z.number().optional().describe("Surface habitable (m²)"),
+        pieces: z
+          .array(
+            z.object({
+              type: z.enum(["sejour", "cuisine", "chambre", "salle_de_bain", "wc", "entree", "exterieur", "autre"]),
+              surface: z.number().optional().describe("m², si estimable"),
+              etat: z.enum(["bon", "rafraichir", "renover", "refaire"]),
+              remarques: z.string().optional().describe("Ce qui est visible sur la photo"),
+            }),
+          )
+          .default([]),
+        general: z
+          .object({
+            electricite: z.enum(["ok", "a_reprendre", "a_refaire"]).optional(),
+            chauffage: z.enum(["ok", "electrique_ancien", "a_refaire", "absent"]).optional(),
+            menuiseries: z.enum(["ok", "simple_vitrage"]).optional(),
+            nb_fenetres: z.number().optional(),
+            plomberie: z.enum(["ok", "a_refaire"]).optional(),
+            structure: z.enum(["ok", "fissures", "a_reprendre"]).optional(),
+            toiture: z.enum(["ok", "a_refaire", "sans_objet"]).optional(),
+            facade: z.enum(["ok", "a_refaire"]).optional(),
+            annee_construction: z.number().optional(),
+          })
+          .default({}),
+        projet: z
+          .object({
+            division_lots: z.number().optional().describe("Nombre de logements après division (≥ 2)"),
+            division_fonciere: z.boolean().optional(),
+            voie_commune: z.boolean().optional(),
+            changement_destination: z.boolean().optional(),
+            surface_creee: z.number().optional().describe("m² de plancher créés (extension, surélévation, combles)"),
+            modif_facade: z.boolean().optional(),
+            places_parking: z.number().optional(),
+            copropriete: z.boolean().optional(),
+            acheve_moins_de_5_ans: z.boolean().optional(),
+            compteurs_a_creer: z.boolean().optional(),
+            assainissement: z.enum(["collectif", "fosse", "inconnu"]).optional(),
+          })
+          .default({}),
+        gamme: z.enum(["bas", "moyen", "haut"]).default("moyen"),
+        dpe: z.string().optional(),
+        zone_plu: z.string().optional().describe("Libellé de zone PLU (fiche_bien), ex. UA"),
+        secteur_patrimonial: z.boolean().optional().describe("SPR, PSMV ou abords de monument historique (fiche_bien)"),
+        lien: z
+          .object({ lon: z.number(), lat: z.number(), code_insee: z.string(), libelle: z.string().optional(), prix: z.number().optional() })
+          .optional()
+          .describe("Coordonnées du bien (chercher_adresse) pour renvoyer le lien vers l'appli"),
+      },
+    },
+    async (e) => {
+      try {
+        const g = e.general;
+        const pj = e.projet;
+        const plan: PlanTravaux = {
+          ...planParDefaut(),
+          gamme: e.gamme,
+          surface: e.surface ?? null,
+          pieces: e.pieces.map((p, i) => ({ id: `c${i}`, type: p.type, surface: p.surface ?? null, etat: p.etat, remarques: p.remarques })),
+          general: {
+            ...generalParDefaut(),
+            ...(g.electricite && { electricite: g.electricite }), ...(g.chauffage && { chauffage: g.chauffage }), ...(g.menuiseries && { menuiseries: g.menuiseries }),
+            nbFenetres: g.nb_fenetres ?? null, ...(g.plomberie && { plomberie: g.plomberie }), ...(g.structure && { structure: g.structure }),
+            toiture: g.toiture ?? (e.type_bien === "Appartement" ? "sans_objet" : "ok"), ...(g.facade && { facade: g.facade }), anneeConstruction: g.annee_construction ?? null,
+          },
+          projet: {
+            ...projetParDefaut(),
+            division: (pj.division_lots ?? 0) > 1, nbLots: Math.max(1, pj.division_lots ?? 1), divisionFonciere: !!pj.division_fonciere, voieCommune: !!pj.voie_commune,
+            changementDestination: !!pj.changement_destination, surfaceCreee: pj.surface_creee ?? 0, modifFacade: !!pj.modif_facade, placesParking: pj.places_parking ?? 0,
+            copropriete: pj.copropriete ?? e.type_bien === "Appartement", acheveMoinsDe5Ans: !!pj.acheve_moins_de_5_ans, compteursACreer: !!pj.compteurs_a_creer,
+            assainissement: pj.assainissement ?? "inconnu",
+          },
+        };
+        const surface = e.surface ?? (e.pieces.reduce((s2, p) => s2 + (p.surface ?? 0), 0) || null);
+        const prop = proposerTravaux(plan, surface);
+        const detail: PlanTravaux = { ...plan, mode: "detail", lignes: prop.lignes, pct: prop.pct as Record<string, number> };
+        const base = { ...budgetVide(), surfaceTotale: surface ?? 0, surfaceCarrez: surface ?? 0 };
+        const report = reportDevis(base, detail, prop.pct, surface ?? 0);
+        const bascule = basculeImmeubleNeuf(report.travaux);
+        const h = { ...hypothesesParDefaut(), regimeTVA: "auto" as const, natureOperation: pj.division_fonciere ? ("division_fonciere" as const) : ("logement_ancien" as const) };
+        const tva = regimeTVA(h, bascule.immeubleNeuf, bascule.raison);
+        const devis = chiffrer(detail.lignes, detail.gamme);
+        const notes = demarches(detail, {
+          typeBien: e.type_bien, zonePLU: e.zone_plu ?? null, secteurPatrimonial: !!e.secteur_patrimonial, dpe: e.dpe,
+          grosOeuvre: Object.values(report.travaux.grosOeuvre).some((p) => p.montantTTC > 0), travaux: devis.length > 0, immeubleNeuf: bascule.immeubleNeuf, surface,
+        });
+        const encode = encoderPlan(detail);
+        let lien: string | null = null;
+        if (e.lien) {
+          const q = new URLSearchParams({ lon: String(e.lien.lon), lat: String(e.lien.lat), insee: e.lien.code_insee, type: e.type_bien });
+          if (e.lien.libelle) q.set("label", e.lien.libelle);
+          if (surface) q.set("surface", String(surface));
+          if (e.lien.prix) q.set("prix", String(e.lien.prix));
+          q.set("travaux", encode);
+          lien = `${origine}/bien?${q}#travaux`;
+        }
+        return json({
+          surface_traitee: surface,
+          forfaits: Object.fromEntries((Object.keys(FORFAITS) as (keyof typeof FORFAITS)[]).map((f) => [f, { prix_m2: FORFAITS[f].prixM2, total: surface ? FORFAITS[f].prixM2 * surface : null, description: FORFAITS[f].description }])),
+          forfait_conseille: prop.forfaitConseille,
+          devis_detaille: {
+            gamme: detail.gamme,
+            total_ttc: Math.round(devis.reduce((s2, l) => s2 + l.ttc, 0)),
+            lignes: devis.map((l) => ({ lot: l.lot, quantite: l.quantite, unite: l.unite, prix_unitaire: l.prixUnitaire, total_ttc: Math.round(l.ttc), origine: l.origine })),
+            note: "Le bilan ajoute 6 % d'aléas. Géomètre, architecte, avocat et huissier vont dans les coûts techniques, l'assurance dommages-ouvrage dans les frais divers.",
+          },
+          requalification: {
+            immeuble_neuf: bascule.immeubleNeuf,
+            raison: bascule.raison || null,
+            criteres: bascule.criteres.map((c) => ({ element: c.libelle, renove: Math.round(c.valeur * 100) / 100, seuil: c.seuil, atteint: c.atteint })),
+          },
+          tva_revente: { regime: tva.regime, explication: tva.raison },
+          demarches: notes.map((d) => ({ titre: d.titre, a_qui_s_adresser: LIBELLES_INTERLOCUTEURS[d.interlocuteur], delai: d.delai ?? null, detail: d.detail, clause_compromis: d.clause ?? null, avant_compromis: !!d.prioritaire })),
+          plan_encode: encode,
+          lien_appli: lien ?? "Passe les coordonnées du bien (paramètre lien) ou appelle lien_appli avec travaux = plan_encode pour pré-remplir l'onglet Travaux.",
+        });
+      } catch (err) {
+        return erreur(err);
+      }
+    },
+  );
+
+  s.registerTool(
     "lien_appli",
     {
       description: "Lien vers l'appli web MADRIMMO avec le bien pré-chargé (carte, comparables, bilan, curseur de négociation, comparatif résidence principale).",
       inputSchema: {
         lon: z.number(), lat: z.number(), code_insee: z.string(), libelle: z.string().optional(),
         type: z.enum(["Maison", "Appartement", "Terrain", "Immeuble"]).optional(), surface: z.number().optional(), prix: z.number().optional(), terrain: z.number().optional(),
+        travaux: z.string().optional().describe("Plan travaux encodé, tel que renvoyé par proposer_travaux (champ plan_encode)"),
       },
     },
     async (e) => {
@@ -332,6 +469,7 @@ export function creerServeur(origine: string): McpServer {
       if (e.surface) q.set("surface", String(e.surface));
       if (e.prix) q.set("prix", String(e.prix));
       if (e.terrain) q.set("terrain", String(e.terrain));
+      if (e.travaux) q.set("travaux", e.travaux);
       return { content: [{ type: "text" as const, text: `${origine}/bien?${q}` }] };
     },
   );

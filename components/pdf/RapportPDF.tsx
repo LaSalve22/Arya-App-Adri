@@ -2,6 +2,9 @@
 // Chargé uniquement au clic sur « Télécharger le PDF » (@react-pdf/renderer est volumineux).
 import { Document, Font, Line, Page, Path, Polyline, Rect, StyleSheet, Svg, Text, View } from "@react-pdf/renderer";
 import { TRACE_MONOGRAMME } from "@/components/Logo";
+import { FORFAITS, LIBELLES_ETATS, LIBELLES_PIECES, chiffrer } from "@/lib/travaux/plan";
+import { LIBELLES_GAMME } from "@/lib/travaux/catalogue";
+import { demarchesDuBien, LIBELLES_INTERLOCUTEURS } from "@/lib/travaux/demarches";
 import type { Analyse } from "@/lib/analyse";
 import type { EtatAnalyse } from "@/lib/etat";
 import { LIBELLES_FORMES } from "@/lib/bilan/profil";
@@ -132,6 +135,10 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
   etat: EtatAnalyse; a: Analyse; fiche: Fiche | null; comps: Comps | null; libelle: string; inclureRP: boolean; vigilance: string[];
 }) {
   const h = etat.hypotheses;
+  const plan = etat.travauxPlan;
+  const devis = chiffrer(plan.lignes, plan.gamme);
+  const categoriesDevis = [...new Set(devis.map((x) => x.categorie))];
+  const notesDemarches = demarchesDuBien(etat, a.r, fiche?.urbanisme.ok ? fiche.urbanisme.data.zone : null);
   const c = etat.caracteristiques;
   const r = a.r;
   const pa = fiche?.parcelle.ok ? fiche.parcelle.data : null;
@@ -243,6 +250,56 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
                 ))}
               </>
             )}
+          </View>
+        </View>
+        <Pied />
+      </Page>
+
+      {/* ---------- Page : travaux et démarches ---------- */}
+      <Page size="A4" style={s.page}>
+        <Entete titre={titre} />
+        <Text style={s.h1}>Travaux et démarches</Text>
+        <View style={s.deux}>
+          <View style={s.col}>
+            <Text style={s.h2}>Approche travaux</Text>
+            {plan.mode === "forfait" && plan.forfait ? (
+              <>
+                <L l={`Forfait ${FORFAITS[plan.forfait].libelle.toLowerCase()} (${FORFAITS[plan.forfait].prixM2} €/m²)`} v={eur(FORFAITS[plan.forfait].prixM2 * (plan.surface ?? c.surface ?? 0))} gras />
+                <Text style={[s.petit, { marginTop: 3 }]}>{esp(FORFAITS[plan.forfait].description)}</Text>
+              </>
+            ) : plan.mode === "detail" && devis.length ? (
+              <>
+                {categoriesDevis.map((cat) => (
+                  <L key={cat} l={cat} v={eur(devis.filter((x) => x.categorie === cat).reduce((s2, x) => s2 + x.ttc, 0))} />
+                ))}
+                <L l={`Devis détaillé (${LIBELLES_GAMME[plan.gamme].toLowerCase()})`} v={eur(devis.reduce((s2, x) => s2 + x.ttc, 0))} gras />
+              </>
+            ) : (
+              <Text>Budget travaux saisi dans le bilan : {eur(r.technique.grosEtSecondOeuvre.ttc)}.</Text>
+            )}
+            {plan.pieces.length > 0 && (
+              <>
+                <Text style={s.h2}>État des pièces</Text>
+                {plan.pieces.map((p) => <L key={p.id} l={`${LIBELLES_PIECES[p.type]}${p.surface ? ` (${p.surface} m²)` : ""}`} v={LIBELLES_ETATS[p.etat]} />)}
+              </>
+            )}
+            <Text style={s.h2}>TVA à la revente</Text>
+            <Text>{esp(r.regimeRaison)}</Text>
+            <View style={{ marginTop: 4 }}>
+              {r.bascule.criteres.filter((x) => x.groupe !== "autre").map((x) => (
+                <L key={x.cle} l={`${x.libelle} (seuil ${pct(x.seuil, 0)})`} v={pct(x.valeur, 0)} />
+              ))}
+            </View>
+          </View>
+          <View style={s.col}>
+            <Text style={s.h2}>Démarches administratives</Text>
+            {notesDemarches.map((d) => (
+              <View key={d.id} style={{ marginBottom: 5 }} wrap={false}>
+                <Text style={{ fontFamily: "InterGras" }}>{d.prioritaire ? "• " : ""}{esp(d.titre)}</Text>
+                <Text style={s.petit}>{LIBELLES_INTERLOCUTEURS[d.interlocuteur]}{d.delai ? ` · ${esp(d.delai)}` : ""}</Text>
+              </View>
+            ))}
+            <Text style={[s.petit, { marginTop: 4 }]}>• à traiter avant la signature du compromis.</Text>
           </View>
         </View>
         <Pied />

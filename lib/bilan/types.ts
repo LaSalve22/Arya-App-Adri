@@ -36,6 +36,15 @@ export interface BudgetTravaux {
   voirie: PosteTravaux; // voiries et espaces verts
   surelevation: number; // TTC, TVA 20 %
   extension: number; // TTC, TVA 20 %
+  /** Démolition, finitions, cuisine et équipements : compté dans le coût, hors critères de requalification (245 A CGI). */
+  finitions?: PosteTravaux;
+  /** Critères de requalification en immeuble neuf autres que les postes de travaux. */
+  requalification?: {
+    /** Immeuble achevé depuis moins de 5 ans. */
+    acheveMoinsDe5Ans?: boolean;
+    /** Augmentation de la surface de plancher créée par les travaux (0,12 = + 12 %). */
+    augmentationSurfacePct?: number;
+  };
 }
 
 export interface Lot {
@@ -81,7 +90,11 @@ export interface FraisVente {
   autres: number;
 }
 
-export type RegimeTVA = "marge" | "exoneration" | "total";
+/** « auto » : régime déduit du projet (immeuble neuf → prix total, terrain à bâtir ou division foncière → marge, logement ancien → exonération). */
+export type RegimeTVA = "marge" | "exoneration" | "total" | "auto";
+export type RegimeApplique = Exclude<RegimeTVA, "auto">;
+/** Nature de l'opération, utilisée par le régime de TVA automatique. */
+export type NatureOperation = "logement_ancien" | "terrain_a_batir" | "division_fonciere";
 export type ScenarioRevente = "down" | "moyen" | "top" | "saisi";
 
 export interface Hypotheses {
@@ -126,6 +139,8 @@ export interface Hypotheses {
 
   /** Régime choisi. Si les travaux font basculer en « immeuble neuf », la TVA sur le prix total s'impose. */
   regimeTVA: RegimeTVA;
+  /** Nature de l'opération, pour le régime « auto » (logement ancien par défaut). */
+  natureOperation?: NatureOperation;
 
   /** Apport en fonds propres, pour le rendement des fonds propres. */
   apport: number;
@@ -160,8 +175,10 @@ export interface ResultatBilan {
   honorairesVente: LigneMontant; // D31-D32
   recettes: { lots: { libelle: string; prix: number; tva: number }[]; chiffreAffaires: number; tva: number }; // D39 / E39
 
-  bascule: { immeubleNeuf: boolean; raison: string };
-  regimeApplique: RegimeTVA;
+  bascule: { immeubleNeuf: boolean; raison: string; criteres: CritereRequalification[] };
+  regimeApplique: RegimeApplique;
+  /** Pourquoi ce régime s'applique. */
+  regimeRaison: string;
 
   margeBruteTTC: number; // D43
   tvaPrixTotal: number; // D45
@@ -192,4 +209,14 @@ export interface ResultatBilan {
     prixVenteM2Carrez: number;
     prixVenteM2Total: number;
   };
+}
+
+/** Un critère de requalification en immeuble neuf, avec son niveau atteint et son seuil. */
+export interface CritereRequalification {
+  cle: string;
+  libelle: string;
+  groupe: "gros_oeuvre" | "second_oeuvre" | "autre";
+  valeur: number;
+  seuil: number;
+  atteint: boolean;
 }

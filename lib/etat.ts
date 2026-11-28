@@ -4,6 +4,7 @@ import { optionsRPParDefaut, type OptionsRP } from "./bilan/residence";
 import { profilParDefaut, type ProfilMdB } from "./bilan/profil";
 import type { Hypotheses } from "./bilan/types";
 import type { Offre } from "./projets";
+import { planParDefaut, type PlanTravaux } from "./travaux/plan";
 
 export interface Caracteristiques {
   type: string;
@@ -37,6 +38,8 @@ export interface EtatAnalyse {
   profil: ProfilMdB;
   caracteristiques: Caracteristiques;
   coutsTechniques: CoutsTechniques;
+  /** État des pièces, forfait ou devis détaillé, options du projet (onglet Travaux). */
+  travauxPlan: PlanTravaux;
 }
 
 export const caracteristiquesVides = (): Caracteristiques => ({ type: "Maison", surface: null, terrain: null, pieces: null, etage: "", ascenseur: "", dpe: "", etat: "", notes: "" });
@@ -46,9 +49,12 @@ export function etatParDefaut(): EtatAnalyse {
   const h = hypothesesParDefaut();
   h.financement.sources = [];
   h.fraisVente = { agencePct: null, diagnostics: 0, mainlevee: 0, homeStaging: 0, autres: 0 };
+  // Régime de TVA déduit du projet : exonération pour un logement ancien, prix total si les travaux le requalifient en neuf.
+  h.regimeTVA = "auto";
+  h.natureOperation = "logement_ancien";
   return {
     hypotheses: h, prixAffiche: 0, margeCible: 0.15, historique: [], rp: optionsRPParDefaut(), profil: profilParDefaut(),
-    caracteristiques: caracteristiquesVides(), coutsTechniques: coutsTechniquesVides(),
+    caracteristiques: caracteristiquesVides(), coutsTechniques: coutsTechniquesVides(), travauxPlan: planParDefaut(),
   };
 }
 
