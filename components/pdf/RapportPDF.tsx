@@ -13,16 +13,16 @@ const eur = (v: number | null | undefined) => (v == null || !Number.isFinite(v) 
 const pct = (v: number | null | undefined, d = 1) => (v == null || !Number.isFinite(v) ? "-" : esp((v * 100).toLocaleString("fr-FR", { minimumFractionDigits: d, maximumFractionDigits: d })) + " %");
 const m2 = (v: number | null | undefined) => (v == null || !v ? "-" : esp(Math.round(v).toLocaleString("fr-FR")) + " €/m²");
 
-const BLEU = "#16202e";
-const OR = "#a86d14";
+const BLEU = "#000000";
+const OR = "#7a7a7a";
 const GRIS = "#5d6b7e";
 const TRAIT = "#dde2ea";
 
 const s = StyleSheet.create({
   page: { padding: 36, paddingBottom: 48, fontSize: 9.5, fontFamily: "Helvetica", color: BLEU, lineHeight: 1.35 },
   entete: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", borderBottomWidth: 2, borderBottomColor: BLEU, paddingBottom: 6, marginBottom: 14 },
-  logo: { fontSize: 16, fontFamily: "Helvetica-Bold", letterSpacing: 1.5 },
-  logoOr: { color: OR },
+  logo: { fontSize: 15, fontFamily: "Helvetica", letterSpacing: 4 },
+  logoOr: { fontFamily: "Helvetica-Bold" },
   petit: { fontSize: 8, color: GRIS },
   h1: { fontSize: 15, fontFamily: "Helvetica-Bold", marginBottom: 4 },
   h2: { fontSize: 11.5, fontFamily: "Helvetica-Bold", marginTop: 12, marginBottom: 6, color: BLEU },
@@ -75,7 +75,7 @@ function PlanParcelle({ fiche }: { fiche: Fiche | null }) {
   const d = polys.map((p) => p.map((r) => "M" + r.map((c) => `${(5 + (c[0] * k - minx) * sc).toFixed(1)},${(5 + (maxy - c[1]) * sc).toFixed(1)}`).join("L") + "Z").join("")).join("");
   return (
     <Svg width={W} height={H} viewBox={`0 0 ${W} ${H}`}>
-      <Path d={d} fill="#fbf1e1" stroke={OR} strokeWidth={1.5} />
+      <Path d={d} fill="#f2f2f2" stroke="#000000" strokeWidth={1.2} />
     </Svg>
   );
 }
@@ -107,7 +107,7 @@ export default function RapportPDF({ etat, a, fiche, comps, libelle, inclureRP, 
           </View>
           <PlanParcelle fiche={fiche} />
         </View>
-        <View style={[s.verdict, { backgroundColor: bon ? "#e3f4ec" : "#fbf1e1" }]}>
+        <View style={[s.verdict, { backgroundColor: "#f2f2f2", borderLeftWidth: 3, borderLeftColor: bon ? "#000000" : "#9a9a9a" }]}>
           <Text style={{ fontFamily: "Helvetica-Bold" }}>
             {bon ? "Opération rentable" : "Opération à renégocier"} : marge de {pct(r.margeSurCA)} du chiffre d'affaires (cible {pct(etat.margeCible, 0)}).
           </Text>

@@ -1,26 +1,30 @@
 :root {
-  --fond: #f4f5f7;
-  --carte: #ffffff;
-  --texte: #16202e;
-  --doux: #5d6b7e;
-  --trait: #dde2ea;
-  --accent: #b7791f;
-  --accent-fond: #fbf1e1;
-  --bleu: #2f5d9b;
-  --bon: #1f8a5b;
-  --bon-fond: #e3f4ec;
-  --moyen: #b7791f;
-  --moyen-fond: #fbf1e1;
-  --mauvais: #c2412d;
-  --mauvais-fond: #fbe7e3;
-  color-scheme: light;
+  /* MADRIMMO : noir et blanc, sobre. Seules les marges (bon / moyen / mauvais) et les DPE gardent une couleur, parce qu'elles portent l'information. */
+  --fond: #000000;
+  --carte: #0b0b0b;
+  --champ: #121212;
+  --texte: #f5f5f5;
+  --doux: #8c8c8c;
+  --trait: #232323;
+  --accent: #ffffff;
+  --accent-fond: #1a1a1a;
+  --sur-accent: #000000;
+  --bleu: #e6e6e6;
+  --bon: #7fc8a0;
+  --bon-fond: #10241a;
+  --moyen: #d9b26a;
+  --moyen-fond: #2a2213;
+  --mauvais: #e58a7a;
+  --mauvais-fond: #2c1512;
+  color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body {
   margin: 0;
   background: var(--fond);
   color: var(--texte);
-  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  font: 14px/1.5 -apple-system, "SF Pro Text", "Helvetica Neue", "Segoe UI", Roboto, Arial, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 a { color: var(--bleu); }
 h1, h2, h3 { margin: 0; line-height: 1.2; }
@@ -32,15 +36,15 @@ h3 { font-size: 14px; }
 .petit { font-size: 12px; }
 
 header.barre {
-  background: #16202e; color: #fff; padding: 10px max(16px, env(safe-area-inset-left));
+  background: #000; color: #fff; padding: 12px max(16px, env(safe-area-inset-left)); border-bottom: 1px solid var(--trait);
   display: flex; align-items: center; gap: 24px; position: sticky; top: 0; z-index: 1000;
 }
-header.barre .logo { font-weight: 800; letter-spacing: .08em; font-size: 17px; color: #fff; text-decoration: none; }
-header.barre .logo span { color: #e2aa55; }
+header.barre .logo { font-weight: 300; letter-spacing: .32em; font-size: 16px; color: #fff; text-decoration: none; }
+header.barre .logo span { color: #fff; font-weight: 700; }
 header.barre nav { display: flex; gap: 16px; }
-header.barre nav a { color: #c9d3e0; text-decoration: none; font-weight: 500; }
+header.barre nav a { color: #9a9a9a; text-decoration: none; font-weight: 500; letter-spacing: .04em; }
 header.barre nav a:hover { color: #fff; }
-header.barre .zone { margin-left: auto; font-size: 12px; color: #9fb0c6; }
+header.barre .zone { margin-left: auto; font-size: 11px; color: #6b6b6b; letter-spacing: .08em; text-transform: uppercase; }
 
 main { max-width: 1280px; margin: 0 auto; padding: 20px max(16px, env(safe-area-inset-left)) 60px; }
 .carte { background: var(--carte); border: 1px solid var(--trait); border-radius: 10px; padding: 16px; }
@@ -55,22 +59,23 @@ main { max-width: 1280px; margin: 0 auto; padding: 20px max(16px, env(safe-area-
 .onglets button[aria-selected="true"] { color: var(--texte); border-color: var(--accent); }
 
 input, select, textarea {
-  font: inherit; color: inherit; background: #fff; border: 1px solid var(--trait); border-radius: 6px; padding: 7px 9px; min-width: 0;
+  font: inherit; color: inherit; background: var(--champ); border: 1px solid #2a2a2a; border-radius: 6px; padding: 7px 9px; min-width: 0;
 }
-input:focus, select:focus, textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+input:focus, select:focus, textarea:focus { outline: 1px solid #fff; outline-offset: -1px; border-color: #fff; }
 input[type="number"] { text-align: right; font-variant-numeric: tabular-nums; }
 textarea { width: 100%; min-height: 160px; resize: vertical; }
 button.btn {
-  font: inherit; font-weight: 600; border: 1px solid var(--trait); background: #fff; border-radius: 6px; padding: 8px 14px; cursor: pointer;
+  font: inherit; font-weight: 600; color: var(--texte); border: 1px solid #333; background: transparent; border-radius: 6px; padding: 8px 14px; cursor: pointer;
 }
-button.btn.principal { background: var(--texte); color: #fff; border-color: var(--texte); }
+button.btn.principal { background: #fff; color: #000; border-color: #fff; }
+button.btn:hover:not(:disabled) { border-color: #fff; }
 button.btn:disabled { opacity: .5; cursor: default; }
 button.lien { background: none; border: 0; color: var(--bleu); cursor: pointer; padding: 0; font: inherit; }
 
 label.champ { display: grid; gap: 4px; font-size: 12px; color: var(--doux); }
 label.champ input, label.champ select { color: var(--texte); font-size: 14px; }
 
-.suggestions { border: 1px solid var(--trait); border-radius: 6px; background: #fff; margin-top: 4px; overflow: hidden; }
+.suggestions { border: 1px solid var(--trait); border-radius: 6px; background: var(--champ); margin-top: 4px; overflow: hidden; }
 .suggestions button { display: block; width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--trait); padding: 9px 12px; font: inherit; cursor: pointer; }
 .suggestions button:last-child { border-bottom: 0; }
 .suggestions button:hover, .suggestions button:focus { background: var(--accent-fond); }
@@ -102,7 +107,7 @@ table.t input { width: 100%; }
 
 .disposition-bilan { display: grid; grid-template-columns: minmax(0, 1fr) 380px; gap: 16px; align-items: start; }
 .collant { position: sticky; top: 64px; }
-details.bloc { border: 1px solid var(--trait); border-radius: 8px; background: #fff; }
+details.bloc { border: 1px solid var(--trait); border-radius: 8px; background: var(--carte); }
 details.bloc > summary { padding: 12px 14px; font-weight: 600; cursor: pointer; display: flex; justify-content: space-between; gap: 8px; }
 details.bloc > div { padding: 0 14px 14px; }
 .curseur { width: 100%; accent-color: var(--accent); }
@@ -126,7 +131,7 @@ details.bloc > div { padding: 0 14px 14px; }
 /* ----- Onglets d'analyse ----- */
 .barre-onglets { position: sticky; top: 52px; z-index: 900; background: var(--fond); display: flex; gap: 4px; overflow-x: auto; padding: 6px 0; border-bottom: 1px solid var(--trait); scrollbar-width: thin; }
 .barre-onglets button { flex: none; background: var(--carte); border: 1px solid var(--trait); border-radius: 999px; padding: 6px 12px; font: inherit; font-size: 13px; font-weight: 600; color: var(--doux); cursor: pointer; white-space: nowrap; }
-.barre-onglets button[aria-selected="true"] { background: var(--texte); color: #fff; border-color: var(--texte); }
+.barre-onglets button[aria-selected="true"] { background: #fff; color: #000; border-color: #fff; }
 .bandeau { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; background: var(--carte); border: 1px solid var(--trait); border-radius: 10px; padding: 10px 14px; }
 .bandeau > div { display: grid; gap: 2px; min-width: 0; }
 .bandeau strong { font-variant-numeric: tabular-nums; font-size: 15px; }
@@ -136,3 +141,24 @@ details.bloc > div { padding: 0 14px 14px; }
 .verdict.bon { background: var(--bon-fond); } .verdict.moyen { background: var(--moyen-fond); } .verdict.mauvais { background: var(--mauvais-fond); }
 .grille2 > *, .grille3 > *, .pile > * { min-width: 0; }
 @media (max-width: 640px) { table.t td.n { white-space: normal; overflow-wrap: anywhere; } }
+
+/* ----- Finitions thème noir ----- */
+h1, h2 { font-weight: 600; letter-spacing: -.01em; }
+h1 { font-size: 24px; }
+.carte { border-color: var(--trait); }
+table.t tr.total td { border-top-color: #fff; }
+.curseur { accent-color: #fff; }
+a { color: #fff; text-underline-offset: 3px; }
+button.lien { color: #fff; text-decoration: underline; text-underline-offset: 3px; }
+.barre-onglets button { background: transparent; border-color: #2a2a2a; color: #9a9a9a; }
+.barre-onglets button:hover { color: #fff; border-color: #555; }
+.verdict { border: 1px solid var(--trait); }
+.carte-map { border-color: var(--trait); background: #111; }
+.carte-map .leaflet-tile-pane { filter: grayscale(1) invert(1) brightness(.85) contrast(.9); }
+.leaflet-container { background: #111; font: inherit; }
+.leaflet-control-attribution { background: rgba(0,0,0,.6) !important; color: #777 !important; }
+.leaflet-control-attribution a { color: #aaa !important; }
+.leaflet-bar a { background: #111 !important; color: #fff !important; border-color: #333 !important; }
+.leaflet-tooltip { background: #111; color: #fff; border-color: #333; }
+.leaflet-tooltip-top:before { border-top-color: #111; }
+::selection { background: #fff; color: #000; }
