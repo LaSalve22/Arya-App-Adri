@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>MADRIMMO · Présentation et charte graphique</title>
+<!-- Source du livret. PDF : node scripts/generer-livret.mjs -->
+<style>
+@font-face { font-family: "Cormorant Garamond"; font-weight: 500; src: url("../../public/fonts/cormorant-garamond-latin-500-normal.woff") format("woff"); }
+@font-face { font-family: "Cormorant Garamond"; font-weight: 600; src: url("../../public/fonts/cormorant-garamond-latin-600-normal.woff") format("woff"); }
+@font-face { font-family: "Inter"; font-weight: 400; src: url("../../public/fonts/inter-latin-400-normal.woff") format("woff"); }
+@font-face { font-family: "Inter"; font-weight: 600; src: url("../../public/fonts/inter-latin-600-normal.woff") format("woff"); }
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; }
+body { font-family: Inter, sans-serif; font-size: 10.5pt; line-height: 1.55; color: #111; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.page { width: 210mm; height: 297mm; padding: 24mm 20mm 22mm; position: relative; overflow: hidden; page-break-after: always; break-after: page; display: flex; flex-direction: column; gap: 8mm; }
+.page:last-child { page-break-after: auto; break-after: auto; }
+.noir { background: #000; color: #f5f5f5; }
+.blanc { background: #fff; color: #111; }
+.serif { font-family: "Cormorant Garamond", Georgia, serif; font-weight: 500; font-variant-numeric: lining-nums; }
+h1, h2, h3 { margin: 0; font-weight: 500; }
+h1 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 34pt; line-height: 1.08; font-variant-numeric: lining-nums; }
+h2 { font-family: "Cormorant Garamond", Georgia, serif; font-size: 18pt; line-height: 1.2; }
+h3 { font-size: 10.5pt; font-weight: 600; }
+p { margin: 0; }
+.sur { font-size: 7.5pt; letter-spacing: .26em; text-transform: uppercase; color: #6b6b6b; }
+.noir .sur { color: #a3a3a3; }
+.doux { color: #555; }
+.noir .doux { color: #bdbdbd; }
+.chap { font-size: 7.5pt; letter-spacing: .26em; text-transform: uppercase; }
+.folio { position: absolute; left: 20mm; right: 20mm; bottom: 10mm; display: flex; justify-content: space-between; font-size: 7pt; letter-spacing: .18em; text-transform: uppercase; color: #8c8c8c; }
+.g2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8mm; }
+.g3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6mm; }
+.g4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 5mm; }
+.filet { border-top: 0.6pt solid #d6d6d6; }
+.noir .filet { border-top-color: #2e2e2e; }
+.bloc { display: flex; flex-direction: column; gap: 2.5mm; }
+.bloc p { font-size: 9.5pt; }
+.num { font-size: 28pt; font-family: "Cormorant Garamond", Georgia, serif; line-height: 1; font-variant-numeric: lining-nums; }
+.a-completer { background: #f1f1f1; border: 0.6pt dashed #8c8c8c; padding: 0 1.5mm; font-style: normal; color: #333; }
+.noir .a-completer { background: #1a1a1a; border-color: #6b6b6b; color: #e5e5e5; }
+table { width: 100%; border-collapse: collapse; font-size: 9.5pt; font-variant-numeric: tabular-nums; }
+td { padding: 1.8mm 0; border-bottom: 0.5pt solid #e3e3e3; }
+td.n { text-align: right; white-space: nowrap; }
+tr.total td { border-top: 1pt solid #111; border-bottom: 0; font-weight: 600; }
+tr.sous td { color: #555; }
+.etape { display: grid; grid-template-columns: 16mm 1fr; gap: 4mm; align-items: start; padding: 3.5mm 0; border-top: 0.6pt solid #2e2e2e; }
+.etape .num { font-size: 24pt; color: #f5f5f5; }
+.cadre { border: 0.6pt solid #d6d6d6; display: flex; align-items: center; justify-content: center; }
+.noir .cadre { border-color: #2e2e2e; }
+.ex { display: flex; flex-direction: column; gap: 2mm; font-size: 8.5pt; }
+.croix { font-weight: 600; font-size: 8.5pt; }
+</style>
+</head>
+<body>
+
+<!-- Dégradés chrome partagés (repère de la charte) -->
+<svg width="0" height="0" style="position: absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="chm" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="205" y2="160">
+      <stop offset="0" stop-color="#6e6e6e"/><stop offset=".35" stop-color="#f7f7f7"/><stop offset=".55" stop-color="#8a8a8a"/><stop offset=".8" stop-color="#e8e8e8"/><stop offset="1" stop-color="#9a9a9a"/>
+    </linearGradient>
+    <linearGradient id="chc" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="280" y2="340">
+      <stop offset="0" stop-color="#6e6e6e"/><stop offset=".35" stop-color="#f7f7f7"/><stop offset=".55" stop-color="#8a8a8a"/><stop offset=".8" stop-color="#e8e8e8"/><stop offset="1" stop-color="#9a9a9a"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- 1 · Couverture -->
+<section class="page noir" style="justify-content: space-between; align-items: center; padding-top: 70mm; padding-bottom: 26mm; text-align: center">
+  <div style="display: flex; flex-direction: column; align-items: center; gap: 12mm">
+    <svg width="230" height="180" viewBox="0 0 205 160" role="img" aria-label="Monogramme MADRIMMO"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="url(#chm)" stroke-width="12" stroke-linejoin="miter" stroke-miterlimit="10" stroke-linecap="square"/></svg>
+    <div style="display: flex; flex-direction: column; gap: 4mm; align-items: center">
+      <span class="serif" style="font-weight: 600; font-size: 34pt; letter-spacing: .3em; margin-right: -.3em">MADRIMMO</span>
+      <span class="sur">Marchand de biens · Occitanie</span>
+    </div>
+  </div>
+  <div style="display: flex; flex-direction: column; gap: 2mm; align-items: center">
+    <span class="serif" style="font-size: 16pt">Présentation de l'entreprise et charte graphique</span>
+    <span class="doux" style="font-size: 8.5pt">Société en cours de création · Édition de novembre 2026</span>
+  </div>
+</section>
+
+<!-- 2 · Sommaire -->
+<section class="page blanc">
+  <span class="sur">Sommaire</span>
+  <h1>Ce que vous trouverez<br>dans ce livret</h1>
+  <div class="g2" style="margin-top: 8mm">
+    <div class="bloc">
+      <span class="chap">Partie I · L'entreprise</span>
+      <table>
+        <tr><td>Le nom</td><td class="n">03</td></tr>
+        <tr><td>Le métier</td><td class="n">04</td></tr>
+        <tr><td>Les fondateurs</td><td class="n">05</td></tr>
+        <tr><td>La méthode</td><td class="n">06</td></tr>
+        <tr><td>La structure juridique et fiscale</td><td class="n">07</td></tr>
+        <tr><td>Les objectifs</td><td class="n">08</td></tr>
+        <tr><td>Une opération type, chiffrée</td><td class="n">09</td></tr>
+        <tr><td>Le financement</td><td class="n">10</td></tr>
+        <tr><td>L'outil MADRIMMO</td><td class="n">11</td></tr>
+      </table>
+    </div>
+    <div class="bloc">
+      <span class="chap">Partie II · La charte graphique</span>
+      <table>
+        <tr><td>Le logo principal</td><td class="n">12</td></tr>
+        <tr><td>Le cachet</td><td class="n">13</td></tr>
+        <tr><td>Versions, tailles et interdits</td><td class="n">14</td></tr>
+        <tr><td>Les couleurs</td><td class="n">15</td></tr>
+        <tr><td>La typographie</td><td class="n">16</td></tr>
+        <tr><td>Le ton et les signatures</td><td class="n">17</td></tr>
+        <tr><td>Les applications</td><td class="n">18</td></tr>
+      </table>
+    </div>
+  </div>
+  <p class="doux" style="margin-top: auto; font-size: 8.5pt; max-width: 125mm">Les éléments signalés <em class="a-completer">[à compléter]</em> seront renseignés à la création de la société. Les chiffres de l'opération type sont un exemple illustratif, calculé avec l'outil MADRIMMO.</p>
+  <div class="folio"><span>MADRIMMO</span><span>02</span></div>
+</section>
+
+<!-- 3 · Le nom -->
+<section class="page noir">
+  <span class="sur">Partie I · L'entreprise</span>
+  <h1>Un nom, deux associés,<br>un métier</h1>
+  <div style="margin-top: 14mm; width: 150mm; display: flex; flex-direction: column; gap: 4mm">
+    <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); font-family: 'Cormorant Garamond', serif; font-weight: 500; font-size: 62pt; line-height: 1; text-align: center">
+      <span>M</span><span>A</span><span>D</span><span>R</span><span>I</span><span>M</span><span>M</span><span>O</span>
+    </div>
+    <div style="display: grid; grid-template-columns: repeat(8, minmax(0, 1fr)); row-gap: 3mm; font-size: 8pt; letter-spacing: .16em; text-transform: uppercase">
+      <div style="grid-column: 1 / 3; border-top: 1.5pt solid #f5f5f5; padding-top: 2mm">MA · Maëva</div>
+      <div style="grid-column: 2 / 6; grid-row: 2; border-top: 1.5pt solid #bdbdbd; padding-top: 2mm; padding-left: 3mm; color: #d4d4d4">ADRI · Adrien</div>
+      <div style="grid-column: 5 / 9; grid-row: 3; border-top: 1.5pt solid #8c8c8c; padding-top: 2mm; padding-left: 3mm; color: #a3a3a3">IMMO · le métier</div>
+    </div>
+  </div>
+  <div class="g2" style="margin-top: auto">
+    <p style="font-size: 11pt">Les trois mots se chevauchent. Le <strong>A</strong> appartient à Maëva comme à Adrien, le <strong>I</strong> relie Adrien à l'immobilier. Le nom raconte une association, pas une addition.</p>
+    <p class="doux" style="font-size: 11pt">Le monogramme reprend cette idée en un seul trait : la dernière jambe du M devient un A. On le lit d'abord comme un M, on y découvre ensuite le A.</p>
+  </div>
+  <div class="folio"><span>MADRIMMO</span><span>03</span></div>
+</section>
+
+<!-- 4 · Le métier -->
+<section class="page blanc">
+  <span class="sur">Le métier</span>
+  <h1>Acheter juste. Rénover bien.<br>Revendre clair.</h1>
+  <p style="font-size: 12pt; max-width: 145mm">MADRIMMO est une société de marchand de biens : elle achète des logements anciens qui ont besoin d'être remis à niveau, les rénove, puis les revend à des particuliers. Sa valeur ajoutée tient en trois gestes : trouver le bon bien, l'acheter au bon prix, le transformer avec méthode.</p>
+  <div class="g3" style="margin-top: 6mm">
+    <div class="bloc filet" style="padding-top: 4mm"><span class="num">01</span><h3>Acheter juste</h3><p class="doux">Un prix d'achat fixé à partir des ventes réelles du quartier et du coût des travaux, jamais à partir du prix affiché.</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><span class="num">02</span><h3>Rénover bien</h3><p class="doux">Des travaux utiles qui se voient et se mesurent : plan, électricité, salle d'eau, performance énergétique.</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><span class="num">03</span><h3>Revendre clair</h3><p class="doux">Un bien prêt à vivre, des diagnostics à jour, un prix argumenté par les ventes comparables.</p></div>
+  </div>
+  <div class="g2" style="margin-top: auto">
+    <div class="bloc"><span class="chap">Territoire</span><p>L'Occitanie, en commençant par l'Hérault et les départements voisins, que les fondateurs connaissent et peuvent visiter rapidement.</p></div>
+    <div class="bloc"><span class="chap">Biens visés</span><p>Appartements et petites maisons à rénover, revendus à des acquéreurs en résidence principale.</p></div>
+  </div>
+  <div class="folio"><span>MADRIMMO</span><span>04</span></div>
+</section>
+
+<!-- 5 · Les fondateurs -->
+<section class="page noir">
+  <span class="sur">Les fondateurs</span>
+  <h1>Deux associés à parts égales,<br>sur tous les sujets</h1>
+  <p style="font-size: 11.5pt; max-width: 150mm" class="doux">MADRIMMO est portée par un couple d'associés. Les rôles sont partagés : chaque opération est analysée, négociée et suivie à deux. Les décisions d'achat se prennent ensemble, chiffres à l'appui.</p>
+  <div class="g2" style="margin-top: 8mm; flex: 1">
+    <div class="bloc filet" style="padding-top: 6mm; gap: 4mm">
+      <span class="serif" style="font-size: 30pt; line-height: 1">Adrien <span class="a-completer" style="font-family: Inter; font-size: 9pt">[nom]</span></span>
+      <span class="sur">Associé · co-fondateur</span>
+      <p>Commercial dans l'intégration audiovisuelle à Montpellier : prospection, négociation et pilotage de projets techniques avec des clients professionnels.</p>
+      <p>Investisseur immobilier à titre personnel, propriétaire de deux biens, et investisseur en bourse.</p>
+      <p class="doux">Apporte à MADRIMMO : le réseau, la négociation, la lecture des chiffres d'une opération.</p>
+    </div>
+    <div class="bloc filet" style="padding-top: 6mm; gap: 4mm">
+      <span class="serif" style="font-size: 30pt; line-height: 1">Maëva <span class="a-completer" style="font-family: Inter; font-size: 9pt">[nom]</span></span>
+      <span class="sur">Associée · co-fondatrice</span>
+      <p><span class="a-completer">[à compléter : parcours professionnel de Maëva]</span></p>
+      <p><span class="a-completer">[à compléter : expérience immobilière ou compétences utiles au projet]</span></p>
+      <p class="doux">Apporte à MADRIMMO : <span class="a-completer">[à compléter]</span></p>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO</span><span>05</span></div>
+</section>
+
+<!-- 6 · La méthode -->
+<section class="page noir">
+  <span class="sur">La méthode</span>
+  <h1>Chaque opération passe<br>les mêmes cinq étapes</h1>
+  <div style="margin-top: 6mm">
+    <div class="etape"><span class="num">01</span><div class="bloc"><h3>Repérer</h3><p class="doux">Annonces, agents immobiliers, notaires, réseau. Chaque piste est saisie dans l'outil MADRIMMO par son adresse, sa parcelle ou une capture de l'annonce.</p></div></div>
+    <div class="etape"><span class="num">02</span><div class="bloc"><h3>Analyser</h3><p class="doux">L'outil interroge en direct les données publiques : cadastre, plan local d'urbanisme, ventes réelles (DVF), risques naturels, diagnostics énergétiques du voisinage.</p></div></div>
+    <div class="etape"><span class="num">03</span><div class="bloc"><h3>Fixer le prix maximum</h3><p class="doux">Le bilan prévisionnel calcule le prix d'achat au-delà duquel la marge passe sous la cible de 15 % du prix de revente. On ne négocie jamais au-dessus.</p></div></div>
+    <div class="etape"><span class="num">04</span><div class="bloc"><h3>Rénover</h3><p class="doux">Budget de travaux chiffré avant l'offre, avec une réserve pour aléas de 6 %. Entreprises locales, suivi de chantier par les deux associés.</p></div></div>
+    <div class="etape" style="border-bottom: 0.6pt solid #2e2e2e"><span class="num">05</span><div class="bloc"><h3>Revendre</h3><p class="doux">Prix de revente argumenté par les biens comparables vendus à proximité. Objectif : revendre dans les 12 mois suivant l'achat.</p></div></div>
+  </div>
+  <div class="folio"><span>MADRIMMO</span><span>06</span></div>
+</section>
+
+<!-- 7 · Structure -->
+<section class="page blanc">
+  <span class="sur">La structure juridique et fiscale</span>
+  <h1>Une SAS au régime<br>des marchands de biens</h1>
+  <div class="g2" style="margin-top: 6mm; row-gap: 9mm">
+    <div class="bloc filet" style="padding-top: 4mm"><h3>Forme : SAS</h3><p>Société par actions simplifiée, détenue à parts égales par les deux associés. Statuts souples, présidence et direction générale réparties entre eux. Activité : marchand de biens immobiliers (code APE 68.10Z).</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><h3>Impôt sur les sociétés</h3><p>15 % jusqu'à 42 500 € de bénéfice, 25 % au-delà, sous les conditions du taux réduit PME (capital libéré et détenu au moins à 75 % par des personnes physiques).</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><h3>Frais d'acquisition réduits</h3><p>En s'engageant à revendre dans les 5 ans, le marchand de biens paie des droits de mutation réduits : les frais d'achat tombent autour de 3 % du prix, au lieu de 7 à 8 % pour un particulier.</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><h3>TVA</h3><p>La revente d'un logement ancien est en principe exonérée de TVA. La TVA sur la marge ou sur le prix total s'applique dans des cas précis (option, terrain à bâtir, travaux qui rendent l'immeuble neuf). L'outil MADRIMMO calcule les trois régimes.</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><h3>Rémunération des associés</h3><p>Les bénéfices sont distribués en dividendes, soumis au prélèvement forfaitaire unique de 31,4 % (taux 2026). En SAS, pas de cotisations sociales sur les dividendes.</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><h3>Capital et siège</h3><p>Capital social : <span class="a-completer">[à compléter]</span><br>Siège : <span class="a-completer">[à compléter]</span><br>Immatriculation : <span class="a-completer">[à compléter]</span></p></div>
+  </div>
+  <p class="doux" style="margin-top: auto; font-size: 8.5pt">Les règles fiscales résumées ici sont à valider avec l'expert-comptable de la société avant sa création.</p>
+  <div class="folio"><span>MADRIMMO</span><span>07</span></div>
+</section>
+
+<!-- 8 · Objectifs -->
+<section class="page noir">
+  <span class="sur">Les objectifs</span>
+  <h1>Commencer prudemment,<br>grandir sur des preuves</h1>
+  <div class="g3" style="margin-top: 10mm">
+    <div class="bloc filet" style="padding-top: 5mm"><span class="num" style="font-size: 40pt">1 à 2</span><p>opérations la première année</p></div>
+    <div class="bloc filet" style="padding-top: 5mm"><span class="num" style="font-size: 40pt">&lt; 200 k€</span><p>par opération, travaux compris</p></div>
+    <div class="bloc filet" style="padding-top: 5mm"><span class="num" style="font-size: 40pt">15 %</span><p>de marge minimum sur le prix de revente</p></div>
+  </div>
+  <div class="g2" style="margin-top: 12mm">
+    <div class="bloc"><span class="chap">Année 1</span><p>Des appartements et petites maisons à rénover, menés à côté des emplois actuels des deux associés. Objectif : prouver la méthode, constituer un historique d'opérations réussies et une relation de confiance avec une banque.</p></div>
+    <div class="bloc"><span class="chap">À 3 ans</span><p><span class="a-completer">[à compléter : nombre d'opérations par an, taille des opérations, ouverture à des investisseurs, temps consacré à MADRIMMO]</span></p></div>
+  </div>
+  <div class="folio"><span>MADRIMMO</span><span>08</span></div>
+</section>
+
+<!-- 9 · Opération type -->
+<section class="page blanc">
+  <span class="sur">Une opération type · exemple illustratif</span>
+  <h1>Appartement T3 de 65 m²<br>à rénover</h1>
+  <p class="doux">Affiché 140 000 €, acheté 120 000 € après négociation, rénové pour 32 000 € TTC et revendu 205 000 € neuf mois plus tard. Vente exonérée de TVA (logement ancien).</p>
+  <div class="g2" style="grid-template-columns: 1.25fr 1fr; gap: 12mm; margin-top: 2mm">
+    <table>
+      <tr><td>Prix de revente</td><td class="n">205 000 €</td></tr>
+      <tr><td>Prix d'achat</td><td class="n">− 120 000 €</td></tr>
+      <tr class="sous"><td>Frais d'acquisition (3 %)</td><td class="n">− 3 600 €</td></tr>
+      <tr><td>Travaux TTC</td><td class="n">− 32 000 €</td></tr>
+      <tr class="sous"><td>Réserve pour aléas (6 %)</td><td class="n">− 1 920 €</td></tr>
+      <tr><td>Frais financiers (prêt, 9 mois)</td><td class="n">− 5 388 €</td></tr>
+      <tr><td>Frais de vente (diagnostics)</td><td class="n">− 500 €</td></tr>
+      <tr class="total"><td>Bénéfice avant impôt · 20,3 %</td><td class="n">41 593 €</td></tr>
+      <tr><td>Impôt sur les sociétés</td><td class="n">− 6 239 €</td></tr>
+      <tr class="total"><td>Bénéfice net de la société</td><td class="n">35 354 €</td></tr>
+      <tr class="sous"><td>Net pour les associés après PFU</td><td class="n">24 253 €</td></tr>
+    </table>
+    <div class="bloc" style="gap: 6mm">
+      <div class="bloc filet" style="padding-top: 4mm"><span class="num">20,3 %</span><p class="doux">de marge sur le prix de revente, pour une cible de 15 %.</p></div>
+      <div class="bloc filet" style="padding-top: 4mm"><span class="num">130 525 €</span><p class="doux">prix d'achat maximum pour rester à 15 % de marge : la négociation garde une réserve de 10 525 €.</p></div>
+      <div class="bloc filet" style="padding-top: 4mm"><span class="num">162 908 €</span><p class="doux">de besoin de financement, couvert par 40 000 € de fonds propres et 130 000 € de prêt.</p></div>
+    </div>
+  </div>
+  <p class="doux" style="margin-top: auto; font-size: 8.5pt">Exemple calculé avec le moteur de l'outil MADRIMMO (bilan prévisionnel, prêt à 4,5 % sur 9 mois avec 1 000 € de frais de dossier). Il illustre la méthode et ne constitue pas une prévision.</p>
+  <div class="folio"><span>MADRIMMO</span><span>09</span></div>
+</section>
+
+<!-- 10 · Financement -->
+<section class="page noir">
+  <span class="sur">Le financement</span>
+  <h1>Des fonds propres d'abord,<br>la banque en partenaire</h1>
+  <div class="g3" style="margin-top: 8mm">
+    <div class="bloc filet" style="padding-top: 4mm"><span class="chap">Fonds propres</span><p>Apport des associés en capital et en compte courant. Il couvre en général les frais et une partie de l'achat, ce que les banques demandent pour un premier dossier.</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><span class="chap">Crédit bancaire</span><p>Prêt in fine ou ligne de crédit sur la durée de l'opération, remboursé à la revente. C'est le financement principal des premières opérations.</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><span class="chap">Investisseurs, ensuite</span><p>Une fois l'historique constitué : emprunt obligataire, comptes courants d'associés rémunérés ou co-investissement par opération.</p></div>
+  </div>
+  <div class="bloc" style="margin-top: 12mm; gap: 4mm">
+    <h2>Ce que reçoit la banque pour chaque opération</h2>
+    <div class="g2" style="row-gap: 3mm">
+      <p class="doux">• Une page de garde et une synthèse : prix, travaux, revente, marge, verdict.</p>
+      <p class="doux">• Le bilan prévisionnel complet, au format du bilan marchand de biens.</p>
+      <p class="doux">• Le plan de financement : besoins, ressources, coût de chaque source.</p>
+      <p class="doux">• Le marché : ventes réelles comparables, prix au m², données publiques.</p>
+      <p class="doux">• Les points de vigilance, écrits noir sur blanc : urbanisme, risques, DPE.</p>
+      <p class="doux">• Le prix d'achat maximum et la sensibilité de la marge à la négociation.</p>
+    </div>
+  </div>
+  <div class="folio"><span>MADRIMMO</span><span>10</span></div>
+</section>
+
+<!-- 11 · L'outil -->
+<section class="page noir">
+  <span class="sur">L'outil MADRIMMO</span>
+  <h1>Une application conçue<br>pour décider avec des chiffres</h1>
+  <img src="capture-appli.png" alt="Onglet de synthèse de l'application MADRIMMO" style="width: 100%; border: 0.6pt solid #2e2e2e; display: block">
+  <div class="g2" style="column-gap: 10mm; row-gap: 1.5mm; font-size: 8.5pt">
+    <p><strong>Recherche</strong> <span class="doux">· adresse, parcelle, annonce ou capture d'écran</span></p>
+    <p><strong>Nature du bien</strong> <span class="doux">· cadastre, PLU, risques</span></p>
+    <p><strong>Ventes DVF et DPE</strong> <span class="doux">· prix réels du secteur</span></p>
+    <p><strong>Biens similaires</strong> <span class="doux">· ventes comparables sur carte</span></p>
+    <p><strong>Profil</strong> <span class="doux">· SAS ou SARL, fiscalité de sortie</span></p>
+    <p><strong>Résidence principale</strong> <span class="doux">· le même bien acheté en nom propre</span></p>
+    <p><strong>Bilan avec travaux</strong> <span class="doux">· le bilan marchand de biens</span></p>
+    <p><strong>Financement</strong> <span class="doux">· fonds propres, prêt, obligataire</span></p>
+    <p><strong>Coûts et frais de vente</strong> <span class="doux">· huissier, géomètre, agence</span></p>
+    <p><strong>Récapitulatif</strong> <span class="doux">· synthèse et dossier PDF</span></p>
+  </div>
+  <div class="folio"><span>MADRIMMO</span><span>11</span></div>
+</section>
+
+<!-- 12 · Logo principal -->
+<section class="page blanc">
+  <span class="sur">Partie II · La charte graphique</span>
+  <h1>Le logo principal</h1>
+  <div class="cadre" style="height: 92mm; position: relative; gap: 8mm">
+    <div style="position: absolute; left: 50%; top: 50%; width: 128mm; height: 50mm; margin: -25mm 0 0 -64mm; border: 0.6pt dashed #9a9a9a"></div>
+    <svg width="120" height="94" viewBox="0 0 205 160" role="img" aria-label="Monogramme"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="#000" stroke-width="16" stroke-linejoin="miter" stroke-miterlimit="10" stroke-linecap="square"/></svg>
+    <div style="width: 0.6pt; height: 24mm; background: #8c8c8c"></div>
+    <div style="display: flex; flex-direction: column; gap: 2mm">
+      <span class="serif" style="font-weight: 600; font-size: 28pt; letter-spacing: .16em; line-height: 1">MADRIMMO</span>
+      <span class="sur" style="font-size: 6.5pt; color: #444">Marchand de biens</span>
+    </div>
+  </div>
+  <div class="g3">
+    <div class="bloc"><h3>Le symbole</h3><p class="doux">Un M ouvert dont la dernière jambe devient un A. Un seul trait, épais et régulier, aux angles vifs. Le A n'a pas de barre.</p></div>
+    <div class="bloc"><h3>Le nom</h3><p class="doux">Cormorant Garamond SemiBold, en capitales espacées de 16 %. Le filet vertical sépare le symbole du nom.</p></div>
+    <div class="bloc"><h3>La zone de protection</h3><p class="doux">Aucun élément dans le cadre en pointillés : une marge égale à la moitié de la hauteur du symbole, sur chaque côté.</p></div>
+  </div>
+  <div class="g2" style="margin-top: auto">
+    <div class="cadre" style="height: 40mm; background: #000; border: 0; gap: 5mm">
+      <svg width="62" height="48" viewBox="0 0 205 160" role="img" aria-label="Logo chromé sur noir"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="url(#chm)" stroke-width="16" stroke-linejoin="miter" stroke-miterlimit="10" stroke-linecap="square"/></svg>
+      <div style="width: 0.6pt; height: 13mm; background: #5a5a5a"></div>
+      <span class="serif" style="font-weight: 600; font-size: 15pt; letter-spacing: .16em; color: #f5f5f5">MADRIMMO</span>
+    </div>
+    <div class="bloc" style="justify-content: center"><h3>Usages</h3><p class="doux">L'application, la signature mail, la carte de visite, les réseaux sociaux, l'en-tête des documents. C'est le logo par défaut.</p></div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Charte</span><span>12</span></div>
+</section>
+
+<!-- 13 · Cachet -->
+<section class="page noir">
+  <span class="sur">La charte graphique</span>
+  <h1>Le cachet</h1>
+  <div class="cadre" style="height: 120mm">
+    <svg width="220" height="267" viewBox="0 0 280 340" role="img" aria-label="Cachet MADRIMMO">
+      <rect x="2" y="2" width="276" height="336" fill="none" stroke="url(#chc)" stroke-width="3"/>
+      <rect x="13" y="13" width="254" height="314" fill="none" stroke="url(#chc)" stroke-width="1.2"/>
+      <polyline points="58,200 58,80 113,160 168,80 223,200" fill="none" stroke="url(#chc)" stroke-width="11" stroke-linejoin="miter" stroke-miterlimit="10" stroke-linecap="square"/>
+      <line x1="60" y1="250" x2="220" y2="250" stroke="url(#chc)" stroke-width="1.2"/>
+      <text x="140" y="288" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="26" font-weight="600" letter-spacing="7" fill="#f5f5f5">MADRIMMO</text>
+    </svg>
+  </div>
+  <div class="g2">
+    <div class="bloc"><h3>Son rôle</h3><p class="doux">Le même monogramme, dans un double filet, avec le nom dessous : une marque de maison, comme un poinçon d'orfèvre. Il signe les documents qui engagent la société.</p></div>
+    <div class="bloc"><h3>Ses usages</h3><p class="doux">Couverture des dossiers bancaires et investisseurs, page de garde des PDF d'analyse, tampon, panneaux de chantier, papier à en-tête. Un seul cachet par page, jamais à côté du logo principal.</p></div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Charte</span><span>13</span></div>
+</section>
+
+<!-- 14 · Versions, tailles, interdits -->
+<section class="page blanc">
+  <span class="sur">La charte graphique</span>
+  <h1>Versions, tailles<br>et interdits</h1>
+  <div class="g3">
+    <div class="ex"><div class="cadre" style="height: 34mm; background: #000; border: 0"><svg width="70" height="55" viewBox="0 0 205 160" role="img" aria-label="Chrome sur noir"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="url(#chm)" stroke-width="16" stroke-linejoin="miter" stroke-linecap="square"/></svg></div><strong>Chrome sur noir</strong><span class="doux">Version de prestige : écran, couverture, marquage argent.</span></div>
+    <div class="ex"><div class="cadre" style="height: 34mm; background: #000; border: 0"><svg width="70" height="55" viewBox="0 0 205 160" role="img" aria-label="Blanc sur noir"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="#fff" stroke-width="16" stroke-linejoin="miter" stroke-linecap="square"/></svg></div><strong>Blanc sur noir</strong><span class="doux">Quand le chrome n'est pas reproductible : textile, gravure, petit format.</span></div>
+    <div class="ex"><div class="cadre" style="height: 34mm"><svg width="70" height="55" viewBox="0 0 205 160" role="img" aria-label="Noir sur blanc"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="#000" stroke-width="16" stroke-linejoin="miter" stroke-linecap="square"/></svg></div><strong>Noir sur blanc</strong><span class="doux">Documents imprimés, courriers, actes, impression bureautique.</span></div>
+  </div>
+  <div class="g3 filet" style="padding-top: 5mm">
+    <div class="bloc"><span class="num">6 mm</span><p class="doux">largeur minimale du symbole seul (24 px à l'écran)</p></div>
+    <div class="bloc"><span class="num">30 mm</span><p class="doux">largeur minimale du logo principal</p></div>
+    <div class="bloc"><span class="num">15 mm</span><p class="doux">largeur minimale du cachet</p></div>
+  </div>
+  <div class="g4 filet" style="padding-top: 5mm">
+    <div class="ex"><div class="cadre" style="height: 28mm"><svg width="90" height="36" viewBox="0 0 205 160" preserveAspectRatio="none" role="img" aria-label="Logo déformé"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="#000" stroke-width="16" stroke-linejoin="miter" stroke-linecap="square"/></svg></div><span class="croix">✕ Ne pas déformer</span></div>
+    <div class="ex"><div class="cadre" style="height: 28mm"><svg width="56" height="44" viewBox="0 0 205 160" role="img" aria-label="Logo en couleur"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="#b8862e" stroke-width="16" stroke-linejoin="miter" stroke-linecap="square"/></svg></div><span class="croix">✕ Pas de couleur</span></div>
+    <div class="ex"><div class="cadre" style="height: 28mm"><svg width="56" height="44" viewBox="0 0 205 160" role="img" aria-label="Chrome sur blanc"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="url(#chm)" stroke-width="16" stroke-linejoin="miter" stroke-linecap="square"/></svg></div><span class="croix">✕ Pas de chrome sur blanc</span></div>
+    <div class="ex"><div class="cadre" style="height: 28mm"><svg width="56" height="44" viewBox="0 0 205 160" role="img" aria-label="Logo avec barre au A"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="#000" stroke-width="16" stroke-linejoin="miter" stroke-linecap="square"/><line x1="96" y1="85" x2="155" y2="85" stroke="#000" stroke-width="12"/></svg></div><span class="croix">✕ Pas de barre au A</span></div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Charte</span><span>14</span></div>
+</section>
+
+<!-- 15 · Couleurs -->
+<section class="page noir">
+  <span class="sur">La charte graphique</span>
+  <h1>Les couleurs</h1>
+  <p class="doux" style="max-width: 150mm">Noir et blanc, sans compromis. Le chrome est une matière, pas une couleur : il est réservé au logo, sur fond noir.</p>
+  <div class="g2" style="flex: 1; row-gap: 6mm">
+    <div class="bloc"><div style="height: 52mm; background: #000; border: 0.6pt solid #3a3a3a"></div><h3>Noir</h3><p class="doux">RVB #000000 · CMJN 60 40 40 100 (noir riche) · Pantone Black 6 C</p></div>
+    <div class="bloc"><div style="height: 52mm; background: #fff"></div><h3>Blanc</h3><p class="doux">RVB #FFFFFF · papier blanc naturel, sans azurant si possible</p></div>
+    <div class="bloc"><div style="height: 30mm; display: grid; grid-template-columns: 1fr 1fr"><div style="background: #8c8c8c"></div><div style="background: #232323"></div></div><h3>Gris texte · Gris filet</h3><p class="doux">#8C8C8C pour les légendes sur noir ; #232323 pour les séparateurs et cadres sur noir. Sur papier : gris texte #6B6B6B.</p></div>
+    <div class="bloc"><div style="height: 30mm; background: linear-gradient(135deg, #6e6e6e 0%, #f7f7f7 35%, #8a8a8a 55%, #e8e8e8 80%, #9a9a9a 100%)"></div><h3>Chrome</h3><p class="doux">Dégradé #6E6E6E · #F7F7F7 · #8A8A8A · #E8E8E8 · #9A9A9A. En impression : Pantone 877 C (argent métallisé) ou marquage à chaud argent.</p></div>
+  </div>
+  <p class="doux" style="font-size: 8.5pt">Seule exception, dans l'application : les indicateurs de marge (vert, ambre, rouge atténués) et les étiquettes DPE gardent leur couleur, parce qu'elles portent une information.</p>
+  <div class="folio"><span>MADRIMMO · Charte</span><span>15</span></div>
+</section>
+
+<!-- 16 · Typographie -->
+<section class="page blanc">
+  <span class="sur">La charte graphique</span>
+  <h1>La typographie</h1>
+  <div class="g2" style="flex: 1">
+    <div class="bloc filet" style="padding-top: 5mm; gap: 4mm">
+      <span class="chap doux">Titres et logo</span>
+      <span class="serif" style="font-size: 44pt; line-height: 1">Cormorant<br>Garamond</span>
+      <span class="serif" style="font-size: 18pt; line-height: 1.3">Aa Bb Cc Dd Ee Ff Gg<br>0 1 2 3 4 5 6 7 8 9</span>
+      <p>Serif classique à fort contraste, pour le nom, les titres de documents et de pages, les grands chiffres de synthèse. Medium pour les titres, SemiBold pour le logo.</p>
+      <p class="doux">Jamais pour un tableau de chiffres ou un texte long.</p>
+    </div>
+    <div class="bloc filet" style="padding-top: 5mm; gap: 4mm">
+      <span class="chap doux">Texte et interface</span>
+      <span style="font-size: 44pt; line-height: 1; font-weight: 600; letter-spacing: -.01em">Inter</span>
+      <span style="font-size: 14pt; line-height: 1.4; font-variant-numeric: tabular-nums">Marge 20,3 %<br>205 000 € · 3 154 €/m²</span>
+      <p>Sans serif nette et très lisible, pour l'application, les tableaux, les bilans et le texte courant. Chiffres à chasse fixe pour aligner les colonnes.</p>
+      <p class="doux">Mentions en capitales espacées de 24 %, en petit corps.</p>
+    </div>
+  </div>
+  <div class="filet" style="padding-top: 5mm; display: grid; grid-template-columns: 30mm 1fr; row-gap: 2.5mm; align-items: baseline">
+    <span class="sur">Titre</span><span class="serif" style="font-size: 26pt; line-height: 1.1">Dossier de financement</span>
+    <span class="sur">Intertitre</span><span class="serif" style="font-size: 16pt">Le bilan prévisionnel</span>
+    <span class="sur">Mention</span><span class="chap">Marchand de biens · Occitanie</span>
+    <span class="sur">Texte</span><span>Le prix d'achat maximum garantit une marge de 15 % du prix de revente.</span>
+  </div>
+  <div class="folio"><span>MADRIMMO · Charte</span><span>16</span></div>
+</section>
+
+<!-- 17 · Ton et signatures -->
+<section class="page noir">
+  <span class="sur">La charte graphique</span>
+  <h1>Le ton et les signatures</h1>
+  <div class="g3" style="margin-top: 4mm">
+    <div class="bloc filet" style="padding-top: 4mm"><h3>Précis</h3><p class="doux">Un chiffre plutôt qu'un adjectif. « Marge de 20 % » et non « belle opération ».</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><h3>Direct</h3><p class="doux">Phrases courtes, une idée par phrase. Vouvoiement avec les partenaires, banques et vendeurs.</p></div>
+    <div class="bloc filet" style="padding-top: 4mm"><h3>Transparent</h3><p class="doux">Les risques sont écrits à côté des chiffres, jamais cachés en annexe. C'est ce qui inspire confiance.</p></div>
+  </div>
+  <div class="bloc" style="margin-top: 14mm; gap: 3mm">
+    <span class="sur">Mention officielle</span>
+    <span class="serif" style="font-size: 30pt; line-height: 1.15">Marchand de biens · Occitanie</span>
+    <p class="doux">Sous le logo et sur tous les documents de la société.</p>
+  </div>
+  <div class="bloc" style="margin-top: 10mm; gap: 3mm">
+    <span class="sur">Accroche</span>
+    <span class="serif" style="font-size: 30pt; line-height: 1.15">Acheter juste. Rénover bien.<br>Revendre clair.</span>
+    <p class="doux">Pour le site, les réseaux sociaux et les présentations aux investisseurs.</p>
+  </div>
+  <div class="g2 filet" style="margin-top: auto; padding-top: 5mm">
+    <div class="ex"><strong>À écrire</strong><span class="doux">« Prix d'achat maximum : 130 525 €. Au-delà, la marge passe sous 15 %. »</span></div>
+    <div class="ex"><strong>À éviter</strong><span class="doux">« Une opportunité exceptionnelle à ne pas manquer ! »</span></div>
+  </div>
+  <div class="folio"><span>MADRIMMO · Charte</span><span>17</span></div>
+</section>
+
+<!-- 18 · Applications -->
+<section class="page blanc">
+  <span class="sur">La charte graphique</span>
+  <h1>Les applications</h1>
+  <div style="background: #ececec; padding: 7mm; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7mm">
+    <div class="ex">
+      <div style="height: 50mm; background: #000; display: flex; align-items: center; justify-content: center"><svg width="70" height="55" viewBox="0 0 205 160" role="img" aria-label="Recto de carte"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="url(#chm)" stroke-width="14" stroke-linejoin="miter" stroke-linecap="square"/></svg></div>
+      <span class="doux">Carte de visite, recto : monogramme chromé sur noir (marquage argent).</span>
+    </div>
+    <div class="ex">
+      <div style="height: 50mm; background: #fff; padding: 6mm; display: flex; flex-direction: column; justify-content: space-between">
+        <div style="display: flex; align-items: center; gap: 2.5mm"><svg width="24" height="19" viewBox="0 0 205 160" role="img" aria-label="Logo"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="#000" stroke-width="18" stroke-linejoin="miter" stroke-linecap="square"/></svg><span class="serif" style="font-weight: 600; font-size: 10pt; letter-spacing: .16em">MADRIMMO</span></div>
+        <div style="display: flex; flex-direction: column; gap: .6mm; font-size: 7.5pt"><strong style="font-size: 8.5pt">Adrien <span class="a-completer">[nom]</span></strong><span>Associé · Marchand de biens</span><span class="doux"><span class="a-completer">[téléphone]</span> · <span class="a-completer">[e-mail]</span></span></div>
+      </div>
+      <span class="doux">Verso : logo principal noir, nom, fonction, coordonnées.</span>
+    </div>
+    <div class="ex">
+      <div style="height: 50mm; background: #fff; padding: 6mm; display: flex; flex-direction: column; gap: 2mm; font-size: 7.5pt">
+        <span>Bien cordialement,</span>
+        <strong style="font-size: 8.5pt; margin-top: 2mm">Maëva <span class="a-completer">[nom]</span></strong>
+        <span class="doux">Associée · MADRIMMO</span>
+        <div style="border-top: 0.6pt solid #d6d6d6; margin-top: 2mm; padding-top: 2.5mm; display: flex; align-items: center; gap: 2.5mm"><svg width="22" height="17" viewBox="0 0 205 160" role="img" aria-label="Logo"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="#000" stroke-width="18" stroke-linejoin="miter" stroke-linecap="square"/></svg><span class="serif" style="font-weight: 600; font-size: 9pt; letter-spacing: .16em">MADRIMMO</span><span class="doux" style="font-size: 6.5pt; letter-spacing: .2em">MARCHAND DE BIENS · OCCITANIE</span></div>
+      </div>
+      <span class="doux">Signature mail : nom, fonction, filet, logo principal noir.</span>
+    </div>
+    <div class="ex">
+      <div style="height: 50mm; display: grid; grid-template-columns: 1fr 1fr; gap: 4mm">
+        <div style="background: #fff; display: flex; flex-direction: column; align-items: center; justify-content: space-between; padding: 4mm 3mm; text-align: center">
+          <svg width="38" height="46" viewBox="0 0 280 340" role="img" aria-label="Cachet"><rect x="2" y="2" width="276" height="336" fill="none" stroke="#000" stroke-width="5"/><rect x="15" y="15" width="250" height="310" fill="none" stroke="#000" stroke-width="2"/><polyline points="58,200 58,80 113,160 168,80 223,200" fill="none" stroke="#000" stroke-width="13" stroke-linejoin="miter" stroke-linecap="square"/><line x1="60" y1="250" x2="220" y2="250" stroke="#000" stroke-width="2"/></svg>
+          <span class="serif" style="font-size: 10pt; line-height: 1.1">Dossier de financement</span>
+          <span style="font-size: 5.5pt" class="doux">[Adresse du bien]</span>
+        </div>
+        <div style="background: #000; color: #f5f5f5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2.5mm; text-align: center; padding: 3mm">
+          <svg width="40" height="31" viewBox="0 0 205 160" role="img" aria-label="Logo"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="url(#chm)" stroke-width="16" stroke-linejoin="miter" stroke-linecap="square"/></svg>
+          <span class="serif" style="font-size: 10pt; line-height: 1.15">Ici, MADRIMMO<br>rénove ce logement</span>
+          <span style="font-size: 5.5pt; letter-spacing: .2em; color: #a3a3a3">LIVRAISON [DATE]</span>
+        </div>
+      </div>
+      <span class="doux">Couverture de dossier bancaire (cachet) et panneau de chantier.</span>
+    </div>
+  </div>
+  <div style="display: flex; align-items: center; gap: 6mm">
+    <div style="width: 22mm; height: 22mm; border-radius: 5mm; background: #000; display: flex; align-items: center; justify-content: center"><svg width="48" height="37" viewBox="0 0 205 160" role="img" aria-label="Icône d'application"><polyline points="20,140 20,20 75,100 130,20 185,140" fill="none" stroke="url(#chm)" stroke-width="17" stroke-linejoin="miter" stroke-linecap="square"/></svg></div>
+    <p class="doux" style="font-size: 9pt">Icône de l'application et avatar des réseaux sociaux : monogramme chromé à 60 % de la largeur, sur fond noir.</p>
+  </div>
+  <div class="folio"><span>MADRIMMO · Charte</span><span>18</span></div>
+</section>
+
+<!-- 19 · Dos -->
+<section class="page noir" style="justify-content: center; align-items: center; gap: 10mm; text-align: center">
+  <svg width="150" height="182" viewBox="0 0 280 340" role="img" aria-label="Cachet MADRIMMO">
+    <rect x="2" y="2" width="276" height="336" fill="none" stroke="url(#chc)" stroke-width="3"/>
+    <rect x="13" y="13" width="254" height="314" fill="none" stroke="url(#chc)" stroke-width="1.2"/>
+    <polyline points="58,200 58,80 113,160 168,80 223,200" fill="none" stroke="url(#chc)" stroke-width="11" stroke-linejoin="miter" stroke-miterlimit="10" stroke-linecap="square"/>
+    <line x1="60" y1="250" x2="220" y2="250" stroke="url(#chc)" stroke-width="1.2"/>
+    <text x="140" y="288" text-anchor="middle" font-family="Cormorant Garamond, serif" font-size="26" font-weight="600" letter-spacing="7" fill="#f5f5f5">MADRIMMO</text>
+  </svg>
+  <span class="serif" style="font-size: 16pt">Acheter juste. Rénover bien. Revendre clair.</span>
+  <span class="doux" style="font-size: 8.5pt"><span class="a-completer">[adresse]</span> · <span class="a-completer">[e-mail]</span> · <span class="a-completer">[téléphone]</span></span>
+</section>
+
+</body>
+</html>

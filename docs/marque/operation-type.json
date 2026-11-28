@@ -1,0 +1,21 @@
+{
+ "achat": 120000,
+ "notaire": 3600,
+ "foncier": 123600,
+ "travaux": 32000,
+ "aleas": 1920,
+ "technique": 33920,
+ "financiers": 5387.5,
+ "vente": 500,
+ "ca": 205000,
+ "tva": 0,
+ "beneficeBrut": 41592.5,
+ "marge": 0.20289024390243904,
+ "is": 6238.875,
+ "net": 35353.625,
+ "netAssocies": 24252.586750000002,
+ "besoin": 162907.5,
+ "fondsPropres": 40000,
+ "rendementFP": null,
+ "prixMaxMoyen": 130525
+}
