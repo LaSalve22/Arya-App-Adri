@@ -8,6 +8,9 @@ export const viewport = { themeColor: "#000000", colorScheme: "dark" as const };
 export const metadata: Metadata = {
   title: "MADRIMMO",
   description: "Recherche et analyse de biens pour marchands de biens en Occitanie",
+  applicationName: "MADRIMMO",
+  appleWebApp: { capable: true, title: "MADRIMMO", statusBarStyle: "black" },
+  formatDetection: { telephone: false },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
