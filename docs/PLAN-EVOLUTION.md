@@ -27,9 +27,9 @@ Une analyse se transforme en projet en un clic (« Créer le projet MDB » ou «
 | Phase | Étapes |
 |---|---|
 | Prospection | 1. Repéré · 2. Contact pris · 3. Visité · 4. Analysé |
-| Acquisition | 5. **Sous offre** (offre envoyée) · 6. **Offre acceptée** · 7. Compromis signé (conditions suspensives en cours) · 8. Acquis (acte authentique) |
-| Opération | 9. **Travaux en cours** · 10. En commercialisation |
-| Sortie | 11. Sous compromis de vente · 12. **Vendu** · 13. Clôturé (bilan réel établi) |
+| Acquisition | 5. **Sous offre** (offre envoyée) · 6. **Offre acceptée** · 7. **Pré-commercialisation** (lots proposés aux acquéreurs avant l'achat) · 8. Compromis signé (conditions suspensives en cours) · 9. Acquis (acte authentique) |
+| Opération | 10. **Travaux en cours** · 11. En commercialisation |
+| Sortie | 12. Sous compromis de vente · 13. **Vendu** · 14. Clôturé (bilan réel établi) |
 | Archives | Offre refusée · Abandonné (avec motif, pour apprendre de chaque dossier) |
 
 **Projets RP** : Repéré · Visité · Sous offre · Offre acceptée · Compromis · Acquis · Travaux · **Habité** · En vente · Vendu.
@@ -43,27 +43,45 @@ Une analyse se transforme en projet en un clic (« Créer le projet MDB » ou «
 | Acquis, MDB | Date limite de l'engagement de revente sous 5 ans (sinon droits de mutation de droit commun) |
 | Ligne de crédit marchand | Échéance des 24 mois |
 
+## La pré-commercialisation, au cœur de l'acquisition
+Revendre les lots, ou au moins les réserver, **avant de signer l'acte d'achat** sécurise toute l'opération : la marge est confirmée par de vrais acheteurs, la banque finance plus facilement, et l'achat ne se fait que si la revente tient.
+- **Quand** : dès l'offre acceptée, pendant le délai du compromis. Elle peut aussi déclencher le passage au compromis (« précom validée → compromis signé → reventes en pré-acte »).
+- **Par lot** :
+  - prix de pré-commercialisation et prix plancher ;
+  - acquéreurs intéressés (contact, budget, financement, niveau d'intérêt) ;
+  - réservations, offres écrites et promesses signées ;
+  - date de signature prévue de la revente.
+- **Indicateurs** : taux de pré-commercialisation (lots réservés sur le total, en nombre et en chiffre d'affaires), chiffre d'affaires sécurisé, marge sécurisée face à la marge prévue. Une alerte s'affiche si la cible n'est pas atteinte à l'approche de la date limite des conditions suspensives.
+- **Outils de vente** :
+  - fiche de présentation par lot en PDF, aux couleurs de MADRIMMO (plans, photos ou visuels 3D, prix, avant et après travaux) ;
+  - dossier « packaging investisseur » ;
+  - lien de partage par lot ;
+  - export pour les agents partenaires.
+- **Dossier bancaire** : le PDF ajoute une page « Pré-commercialisation » (lots réservés, offres écrites, chiffre d'affaires sécurisé). C'est un argument fort pour obtenir la ligne de crédit.
+- **Projets RP** : sans objet.
+
 ## Contenu de la fiche projet
 1. **Synthèse** : étape, prochaines échéances, marge prévue contre marge réelle, photos.
 2. **Offres** : historique (offre, contre-offre, accord), offre écrite en PDF aux couleurs de la charte.
-3. **Tâches et échéances** : liste à cocher, dates, responsable (Adrien ou Maëva), rappels.
-4. **Contacts** : vendeur, agent, notaire, banque, géomètre, architecte, artisans (téléphone, e-mail, appel en un clic).
-5. **Finances réelles** : dépenses et factures saisies (photo du justificatif) ventilées sur les postes du BP, financement réel (déblocages, intérêts), trésorerie mois par mois, bilan de clôture réel contre prévisionnel.
-6. **Travaux** : planning par lot et par artisan, avancement en %, devis acceptés contre facturé, réserves.
-7. **Documents** : compromis, acte, devis, factures, diagnostics, autorisations d'urbanisme, plans. Stockés en ligne et classés par catégorie.
-8. **Vente** : lots, prix affichés, offres reçues, compromis et actes de revente, prix réels pour le bilan.
-9. **Journal** : historique automatique des changements d'étape et des notes.
+3. **Pré-commercialisation** : lots, acquéreurs intéressés, réservations et promesses, taux de lots réservés, chiffre d'affaires sécurisé, fiches de présentation des lots.
+4. **Tâches et échéances** : liste à cocher, dates, responsable (Adrien ou Maëva), rappels.
+5. **Contacts** : vendeur, agent, notaire, banque, géomètre, architecte, artisans (téléphone, e-mail, appel en un clic).
+6. **Finances réelles** : dépenses et factures saisies (photo du justificatif) ventilées sur les postes du BP, financement réel (déblocages, intérêts), trésorerie mois par mois, bilan de clôture réel contre prévisionnel.
+7. **Travaux** : planning par lot et par artisan, avancement en %, devis acceptés contre facturé, réserves.
+8. **Documents** : compromis, acte, devis, factures, diagnostics, autorisations d'urbanisme, plans. Stockés en ligne et classés par catégorie.
+9. **Vente** : lots, prix affichés, offres reçues, compromis et actes de revente, prix réels pour le bilan.
+10. **Journal** : historique automatique des changements d'étape et des notes.
 
 ## Phases de réalisation
 
 | Phase | Contenu | Test avant validation |
 |---|---|---|
 | **0 · Fondations** | Branche et adresse de test ; menus Tableau de bord / Analyse / Projets MDB / Projets RP ; Supabase (connexion Adrien et Maëva, base, sauvegardes) ; reprise des projets actuels | Se connecter sur iPhone et Mac, retrouver les mêmes projets |
-| **1 · Pipeline et offres** | Projets MDB et RP en colonnes et en liste, étapes ci-dessus, passage d'une analyse à un projet, fiche Synthèse et Offres, archives avec motif | Créer un projet depuis une analyse et le faire avancer jusqu'à « Vendu » |
+| **1 · Pipeline, offres et pré-commercialisation** | Projets MDB et RP en colonnes et en liste, étapes ci-dessus, passage d'une analyse à un projet, fiches Synthèse, Offres et **Pré-commercialisation** (lots, acquéreurs, réservations, taux de pré-commercialisation, fiches de présentation des lots), page de pré-commercialisation dans le dossier bancaire, archives avec motif | Créer un projet depuis une analyse, pré-commercialiser 2 lots sur 3 et voir le chiffre d'affaires sécurisé, puis le faire avancer jusqu'à « Vendu » |
 | **2 · Tâches, échéances, contacts** | Tâches et rappels, dates automatiques (compromis, 5 ans, 24 mois), contacts, journal ; échéances sur le tableau de bord | Un compromis saisi crée bien ses échéances |
 | **3 · Finances réelles** | Dépenses et factures, financement réel, trésorerie, bilan réel contre prévisionnel, PDF de clôture | Saisir les dépenses d'une opération et retrouver le bilan réel |
 | **4 · Travaux, documents, vente** | Planning travaux et artisans, documents en ligne (photos, PDF), vente des lots, prix réels | Suivre un chantier et la vente de deux lots |
-| **5 · Tableau de bord et finitions** | Indicateurs, objectifs, export, mise à jour du guide d'utilisation et de la vidéo | Revue complète, puis mise en production |
+| **5 · Tableau de bord et finitions** | Indicateurs (dont chiffre d'affaires pré-commercialisé de toutes les opérations), objectifs, export, mise à jour du guide d'utilisation et de la vidéo | Revue complète, puis mise en production |
 
 **Hors périmètre pour l'instant** : ces deux fonctions de MaBrik passent par des services payants et seront étudiées plus tard.
 - **Synchronisation bancaire** : elle demande un agrégateur agréé.
