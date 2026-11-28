@@ -3,6 +3,7 @@ import type { Hypotheses } from "./bilan/types";
 import type { OptionsRP } from "./bilan/residence";
 import type { ProfilMdB } from "./bilan/profil";
 import type { Caracteristiques, CoutsTechniques } from "./etat";
+import type { PlanTravaux } from "./travaux/plan";
 
 export interface Offre {
   date: string;
@@ -30,6 +31,7 @@ export interface Projet {
   profil?: ProfilMdB;
   caracteristiques?: Caracteristiques;
   coutsTechniques?: CoutsTechniques;
+  travauxPlan?: PlanTravaux;
   creeLe: string;
   majLe: string;
 }

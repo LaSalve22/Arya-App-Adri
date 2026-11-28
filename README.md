@@ -31,7 +31,9 @@ Dans Claude (web, bureau ou mobile) : Personnaliser → Connecteurs → « Ajout
 Chaque personne l'ajoute sur son propre compte (offre gratuite : un seul connecteur personnalisé).
 
 Outils proposés à Claude : `chercher_adresse`, `fiche_bien`, `comparables_dvf`, `prix_secteur`, `analyser_annonce`,
-`calculer_bilan`, `negociation`, `comparer_residence_principale`, `plan_financement`, `lien_appli`.
+`calculer_bilan`, `negociation`, `comparer_residence_principale`, `plan_financement`, `proposer_travaux`, `lien_appli`.
+
+Photos d'annonce : envoie les photos ou captures à Claude et demande une approche travaux. Il identifie les pièces et leur état, appelle `proposer_travaux` (forfaits, devis par lots, bascule TVA, démarches) et renvoie un lien qui pré-remplit l'onglet Travaux de l'appli.
 
 Exemple de demande : « Analyse le 50 rue de l'Ancien Courrier à Narbonne, appartement de 69 m² affiché 110 000 €, 25 000 € de travaux.
 Donne-moi le prix maximum pour 15 % de marge et compare avec un achat en résidence principale. »
@@ -66,6 +68,7 @@ Donne-moi le prix maximum pour 15 % de marge et compare avec un achat en réside
 - `lib/bilan/` : moteur de calcul (fonctions pures) et tests de fidélité à l'Excel (`scripts/excel-fidelite.md`).
 - `lib/sources/` : clients des services publics, avec cache.
 - `lib/annonce/parse.ts` : lecture d'une annonce.
+- `lib/travaux/` : catalogue des prix par lot, forfaits au m², devis à partir de l'état des pièces, démarches administratives, analyse des descriptions dictées.
 - `lib/mcp/serveur.ts` et `app/api/mcp/[jeton]/route.ts` : le connecteur Claude.
 - `demo/` : page autonome de test (données figées), construite par `scripts/build-demo.mjs`.
 - `app/` : pages (recherche, fiche du bien, projets) et routes API.

@@ -12,6 +12,8 @@ import Financement from "@/components/onglets/Financement";
 import FraisFinanciers from "@/components/onglets/FraisFinanciers";
 import { CoutsTechniquesOnglet, FraisVenteOnglet } from "@/components/onglets/Couts";
 import Recap from "@/components/onglets/Recap";
+import Travaux, { appliquerPlan } from "@/components/onglets/Travaux";
+import { completerPlan, decoderPlan } from "@/lib/travaux/lien";
 import { Bandeau } from "@/components/onglets/ui";
 import type { Comps, Fiche, PropsOnglet } from "@/components/onglets/types";
 import { etatParDefaut, type EtatAnalyse } from "@/lib/etat";
@@ -30,6 +32,7 @@ const ONGLETS = [
   ["rp", "Résidence principale"],
   ["comparatif", "Comparatif"],
   ["bp", "BP avec travaux"],
+  ["travaux", "Travaux"],
   ["frais-financiers", "Frais financiers"],
   ["financement", "Mode de financement"],
   ["couts", "Coûts techniques"],
@@ -37,7 +40,7 @@ const ONGLETS = [
   ["recap", "Récapitulatif"],
 ] as const;
 type Onglet = (typeof ONGLETS)[number][0];
-const AVEC_BANDEAU: Onglet[] = ["profil", "rp", "comparatif", "frais-financiers", "financement", "couts", "vente"];
+const AVEC_BANDEAU: Onglet[] = ["travaux", "profil", "rp", "comparatif", "frais-financiers", "financement", "couts", "vente"];
 
 export default function Page() {
   return (
@@ -96,6 +99,7 @@ function Analyse() {
         profil: p.profil ?? profilParDefaut(),
         caracteristiques: p.caracteristiques ?? { ...base.caracteristiques, type: p.typeBien, surface: p.surface },
         coutsTechniques: p.coutsTechniques ?? base.coutsTechniques,
+        travauxPlan: completerPlan(p.travauxPlan),
       });
     } else {
       const h = base.hypotheses;
@@ -108,7 +112,7 @@ function Analyse() {
         h.travaux.surfaceTotale = terrain || surface;
       }
       h.lots = [{ libelle: "Revente", surface: surface ?? undefined, prixDown: null, prixTop: null, tva: 0 }];
-      setEtat({
+      const initial: EtatAnalyse = {
         ...base,
         hypotheses: h,
         prixAffiche: prix,
@@ -120,7 +124,11 @@ function Analyse() {
           pieces: Number(sp.get("pieces")) || null,
           dpe: sp.get("dpe") ?? "",
         },
-      });
+      };
+      // Plan travaux transmis par Claude (connecteur) : reporté directement dans le bilan.
+      const plan = sp.get("travaux") ? decoderPlan(sp.get("travaux")!) : null;
+      setEtat(plan ? appliquerPlan(initial, plan) : initial);
+      if (plan?.mode === "detail") setOnglet("travaux");
     }
     const q = new URLSearchParams();
     for (const k of ["lon", "lat", "idu", "insee", "section", "numero"]) {
@@ -195,6 +203,7 @@ function Analyse() {
       profil: etat.profil,
       caracteristiques: etat.caracteristiques,
       coutsTechniques: etat.coutsTechniques,
+      travauxPlan: etat.travauxPlan,
       creeLe: projet?.creeLe ?? new Date().toISOString(),
       majLe: new Date().toISOString(),
     };
@@ -243,6 +252,7 @@ function Analyse() {
             <ComparatifRP h={props.etat.hypotheses} rp={props.etat.rp} setRp={(rp) => setEtat({ ...props.etat, rp })} mode="tableau" netAssocies={props.a.sortie.distribue ? props.a.sortie.netAssocies : null} />
           )}
           {onglet === "bp" && <Bilan etat={props.etat} setEtat={setEtat} prefillDVF={prefill} />}
+          {onglet === "travaux" && <Travaux {...props} />}
           {onglet === "frais-financiers" && <FraisFinanciers {...props} />}
           {onglet === "financement" && <Financement {...props} />}
           {onglet === "couts" && <CoutsTechniquesOnglet {...props} />}

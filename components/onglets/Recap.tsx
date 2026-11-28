@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { LIBELLES_FORMES } from "@/lib/bilan/profil";
+import { demarchesDuBien, LIBELLES_INTERLOCUTEURS } from "@/lib/travaux/demarches";
 import { ChampRevente } from "@/components/Bilan";
 import { Num } from "./ui";
 import { classeMarge, eur, m2, pct } from "@/lib/format";
@@ -21,6 +22,7 @@ export function pointsDeVigilance({ etat, a, fiche, comps }: Pick<PropsOnglet, "
   if (r?.argiles && /fort/i.test(r.argiles)) v.push(`Argiles : ${r.argiles.toLowerCase()} (fondations, assurance).`);
   if (r?.risques.includes("Inondation")) v.push("Commune exposée au risque inondation : vérifier le zonage PPRI de l'adresse.");
   if (comps && comps.stats.nb < 8) v.push(`Peu de ventes comparables (${comps.stats.nb}) : prix de revente à confirmer.`);
+  for (const d of demarchesDuBien(etat, a.r, z).filter((d) => d.prioritaire && !["plu", "tva", "abf"].includes(d.id))) v.push(`${d.titre}, avant le compromis (${LIBELLES_INTERLOCUTEURS[d.interlocuteur]}).`);
   if (a.r.margeSurCA < etat.margeCible) v.push(`Marge (${pct(a.r.margeSurCA)}) inférieure à la cible de ${pct(etat.margeCible, 0)}.`);
   return v;
 }

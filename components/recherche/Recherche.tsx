@@ -3,6 +3,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Adresse, Commune } from "@/lib/sources/geo";
 import type { AnnonceAnalysee } from "@/lib/annonce/parse";
+import { analyserDescription } from "@/lib/travaux/dictee";
+import { encoderPlan } from "@/lib/travaux/lien";
+import { generalParDefaut, projetParDefaut } from "@/lib/travaux/plan";
 import ZoneCommune from "./ZoneCommune";
 import ImportCapture from "./ImportCapture";
 import { NOMS_DEPARTEMENTS } from "@/lib/sources/occitanie";
@@ -186,10 +189,17 @@ function ParAnnonce() {
       if (r.ok && d[0]) lieu = d[0];
     }
     if (!lieu) return setErr("Ville introuvable en Occitanie : précisez l'adresse ou la commune.");
+    // Mots-clés de travaux de l'annonce (« à rénover », « simple vitrage », « fosse septique »…) → onglet Travaux pré-rempli.
+    const c = analyserDescription(texte);
+    const indices = c.forfait || Object.keys(c.general).length || Object.keys(c.projet).length;
+    const travaux = indices
+      ? encoderPlan({ mode: "forfait", forfait: c.forfait ?? null, pieces: c.forfait ? c.pieces : [], general: { ...generalParDefaut(), ...c.general }, projet: { ...projetParDefaut(), ...c.projet }, notes: "Indices relevés dans l'annonce." })
+      : undefined;
     versFiche(router, {
       lon: lieu.lon, lat: lieu.lat, label: lieu.label, insee: lieu.codeInsee,
       type: a.type ?? "Maison", surface: a.surface, prix: a.prix, terrain: a.terrain, dpe: a.dpe, pieces: a.pieces,
       approx: lieu.type === "municipality" ? 1 : undefined,
+      travaux,
     });
   }
 

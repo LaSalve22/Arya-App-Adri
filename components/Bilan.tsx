@@ -251,6 +251,12 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
                       <td></td>
                     </tr>
                   ))}
+                  <tr>
+                    <td>Démolition, finitions, cuisine <span className="doux petit">· hors critères de requalification</span></td>
+                    <td className="n"><Num v={h.travaux.finitions?.montantTTC ?? 0} set={(n) => maj({ travaux: { ...h.travaux, finitions: { montantTTC: n, tauxTVA: h.travaux.finitions?.tauxTVA ?? 0.1, pctRenove: 0 } } })} /></td>
+                    <td className="n">{pct(h.travaux.finitions?.tauxTVA ?? 0.1, 0)}</td>
+                    <td />
+                  </tr>
                   <tr><td>Surélévation (TVA 20 %)</td><td className="n"><Num v={h.travaux.surelevation} set={(n) => maj({ travaux: { ...h.travaux, surelevation: n } })} /></td><td /><td /></tr>
                   <tr><td>Extension (TVA 20 %)</td><td className="n"><Num v={h.travaux.extension} set={(n) => maj({ travaux: { ...h.travaux, extension: n } })} /></td><td /><td /></tr>
                   <tr><td>Équipement, ameublement</td><td className="n"><Num v={h.ameublement} set={(n) => maj({ ameublement: n })} /></td><td /><td /></tr>
@@ -320,12 +326,13 @@ export default function Bilan({ etat, setEtat, prefillDVF }: { etat: EtatBilan; 
           <label className="champ">
             Régime de TVA
             <select value={h.regimeTVA} onChange={(e) => maj({ regimeTVA: e.target.value as RegimeTVA })}>
+              <option value="auto">Automatique (selon le projet)</option>
               <option value="marge">TVA sur marge</option>
               <option value="exoneration">Exonération de TVA</option>
               <option value="total">TVA sur prix total</option>
             </select>
           </label>
-          {r.regimeApplique !== h.regimeTVA && <p className="alerte">Régime imposé : TVA sur prix total (bascule immeuble neuf).</p>}
+          <p className={r.bascule.immeubleNeuf ? "alerte" : "doux petit"}>{r.regimeRaison}</p>
           <table className="t">
             <tbody>
               <tr><td>Chiffre d'affaires</td><td className="n">{eur(r.recettes.chiffreAffaires)}</td></tr>

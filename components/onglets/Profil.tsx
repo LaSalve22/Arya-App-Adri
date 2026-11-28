@@ -23,7 +23,7 @@ export default function Profil({ etat, setEtat, a }: PropsOnglet) {
           <Champ label="Capital social (€)"><Num v={p.capitalSocial} pas={1000} set={(n) => maj({ capitalSocial: n })} /></Champ>
           <Champ label="Régime de TVA à la revente">
             <select value={h.regimeTVA} onChange={(e) => setEtat({ ...etat, hypotheses: { ...h, regimeTVA: e.target.value as RegimeTVA } })}>
-              <option value="marge">TVA sur marge (cas courant)</option><option value="exoneration">Exonération de TVA</option><option value="total">TVA sur prix total</option>
+              <option value="auto">Automatique (selon le projet et les travaux)</option><option value="marge">TVA sur marge</option><option value="exoneration">Exonération de TVA</option><option value="total">TVA sur prix total</option>
             </select>
           </Champ>
           <Champ label="Frais de notaire à l'achat">

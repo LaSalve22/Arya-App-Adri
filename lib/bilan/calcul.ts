@@ -1,5 +1,5 @@
 import { calculerFinancement } from "./financement";
-import type { BudgetTravaux, Hypotheses, LigneMontant, PosteTravaux, ResultatBilan, ScenarioRevente } from "./types";
+import type { BudgetTravaux, CritereRequalification, Hypotheses, LigneMontant, PosteTravaux, RegimeApplique, ResultatBilan, ScenarioRevente } from "./types";
 
 const ligne = (ttc: number, tva: number): LigneMontant => ({ ttc, tva });
 const sommeLignes = (...l: LigneMontant[]): LigneMontant =>
@@ -17,26 +17,65 @@ export function tvaIncluse(ttc: number, taux: number): number {
 
 const tvaPoste = (p: PosteTravaux) => ligne(p.montantTTC, tvaIncluse(p.montantTTC, p.tauxTVA));
 
-/** Règle BOFIP (cellule B45) : bascule en « immeuble neuf » et donc TVA sur le prix total. */
-export function basculeImmeubleNeuf(t: BudgetTravaux): { immeubleNeuf: boolean; raison: string } {
-  const go = t.grosOeuvre;
-  const grosOeuvre = [
-    ["fondations", go.fondations],
-    ["éléments de structure", go.structure],
-    ["façades", go.facades],
-  ] as const;
-  const g = grosOeuvre.find(([, p]) => (p.pctRenove ?? 0) >= 0.5);
-  if (g) return { immeubleNeuf: true, raison: `Gros œuvre : ${g[0]} rénové(es) à 50 % ou plus` };
-  const so = Object.values(t.secondOeuvre);
-  if (so.every((p) => (p.pctRenove ?? 0) >= 0.66))
-    return { immeubleNeuf: true, raison: "Les 6 postes de second œuvre sont rénovés à 66 % ou plus" };
-  return { immeubleNeuf: false, raison: "" };
+/** Seuils de l'Excel (cellule B45) : gros œuvre 50 %, chaque poste de second œuvre 66 %, surface de plancher + 10 %. */
+export const SEUIL_GROS_OEUVRE = 0.5;
+export const SEUIL_SECOND_OEUVRE = 0.66;
+export const SEUIL_SURFACE = 0.1;
+
+const LIBELLES_CRITERES: Record<string, string> = {
+  fondations: "Fondations",
+  structure: "Structure (résistance, rigidité)",
+  facades: "Façades, hors ravalement",
+  huisseries: "Huisseries extérieures",
+  cloisons: "Cloisons intérieures",
+  sanitaires: "Sanitaires et plomberie",
+  chauffage: "Chauffage",
+  electricite: "Électricité",
+  planchers: "Planchers non porteurs",
+};
+
+/**
+ * Règle BOFIP de requalification en « immeuble neuf » (TVA sur le prix total) :
+ * immeuble achevé depuis moins de 5 ans, ou majorité d'un élément de gros œuvre, ou les 6 postes de second œuvre
+ * (art. 245 A annexe II CGI) aux deux tiers chacun, ou surface de plancher augmentée de plus de 10 %.
+ */
+export function basculeImmeubleNeuf(t: BudgetTravaux): { immeubleNeuf: boolean; raison: string; criteres: CritereRequalification[] } {
+  const crit = (cle: string, groupe: CritereRequalification["groupe"], p: PosteTravaux, seuil: number): CritereRequalification => {
+    const v = p.pctRenove ?? 0;
+    return { cle, libelle: LIBELLES_CRITERES[cle], groupe, valeur: v, seuil, atteint: v >= seuil };
+  };
+  const go = (Object.entries(t.grosOeuvre) as [string, PosteTravaux][]).map(([k, p]) => crit(k, "gros_oeuvre", p, SEUIL_GROS_OEUVRE));
+  const so = (Object.entries(t.secondOeuvre) as [string, PosteTravaux][]).map(([k, p]) => crit(k, "second_oeuvre", p, SEUIL_SECOND_OEUVRE));
+  const aug = t.requalification?.augmentationSurfacePct ?? 0;
+  const surface: CritereRequalification = { cle: "surface", libelle: "Surface de plancher créée", groupe: "autre", valeur: aug, seuil: SEUIL_SURFACE, atteint: aug > SEUIL_SURFACE };
+  const criteres = [...go, ...so, surface];
+
+  if (t.requalification?.acheveMoinsDe5Ans) return { immeubleNeuf: true, raison: "Immeuble achevé depuis moins de 5 ans", criteres };
+  const g = go.find((c) => c.atteint);
+  if (g) return { immeubleNeuf: true, raison: `Gros œuvre : ${g.libelle.toLowerCase()} rénové(es) à 50 % ou plus`, criteres };
+  if (so.every((c) => c.atteint)) return { immeubleNeuf: true, raison: "Les 6 postes de second œuvre sont rénovés aux deux tiers ou plus", criteres };
+  if (surface.atteint) return { immeubleNeuf: true, raison: "Surface de plancher augmentée de plus de 10 %", criteres };
+  return { immeubleNeuf: false, raison: "", criteres };
+}
+
+/** Régime de TVA retenu : la requalification impose le prix total ; sinon le choix, ou le régime déduit de la nature de l'opération. */
+export function regimeTVA(h: Hypotheses, immeubleNeuf: boolean, raisonNeuf: string): { regime: RegimeApplique; raison: string } {
+  if (immeubleNeuf) return { regime: "total", raison: `Immeuble requalifié en neuf (${raisonNeuf.toLowerCase()}) : TVA sur le prix total.` };
+  if (h.regimeTVA !== "auto") {
+    const l = { marge: "TVA sur marge", exoneration: "Exonération de TVA", total: "TVA sur prix total" }[h.regimeTVA];
+    return { regime: h.regimeTVA, raison: `${l}, choisi manuellement.` };
+  }
+  const nature = h.natureOperation ?? "logement_ancien";
+  if (nature === "terrain_a_batir") return { regime: "marge", raison: "Terrain à bâtir acquis sans TVA : TVA sur la marge." };
+  if (nature === "division_fonciere") return { regime: "marge", raison: "Division foncière en terrains à bâtir : TVA sur la marge." };
+  return { regime: "exoneration", raison: "Logement ancien revendu sans requalification en neuf : vente exonérée de TVA (option possible)." };
 }
 
 export function totauxTravaux(t: BudgetTravaux) {
   const go = Object.values(t.grosOeuvre).map(tvaPoste);
   const so = Object.values(t.secondOeuvre).map(tvaPoste);
-  const grosEtSecond = sommeLignes(...go, ...so); // E36 / G36
+  const finitions = t.finitions ? tvaPoste(t.finitions) : ligne(0, 0);
+  const grosEtSecond = sommeLignes(...go, ...so, finitions); // E36 / G36, plus le poste finitions (absent de l'Excel)
   const neufs = ligne(t.surelevation + t.extension, (t.surelevation + t.extension) / 120 * 20); // E51 / G51
   return {
     sousTotalGrosOeuvre: sommeLignes(...go), // E16
@@ -110,7 +149,7 @@ export function calculerBilan(h: Hypotheses): ResultatBilan {
 
   // ---- RÉSUMÉ (lignes 41 à 55)
   const bascule = basculeImmeubleNeuf(h.travaux);
-  const regime = bascule.immeubleNeuf ? "total" : h.regimeTVA;
+  const { regime, raison: regimeRaison } = regimeTVA(h, bascule.immeubleNeuf, bascule.raison);
   const margeBrute = ca - foncier.ttc; // D43
   const tvaPrixTotal = regime === "total" ? ca - ca / 1.2 : 0; // D45
   const tvaSurMarge = regime === "marge" ? margeBrute - margeBrute / 1.2 : 0; // D47
@@ -154,6 +193,7 @@ export function calculerBilan(h: Hypotheses): ResultatBilan {
     recettes: { lots, chiffreAffaires: ca, tva: tvaVentes },
     bascule,
     regimeApplique: regime,
+    regimeRaison,
     margeBruteTTC: margeBrute,
     tvaPrixTotal,
     tvaSurMarge,

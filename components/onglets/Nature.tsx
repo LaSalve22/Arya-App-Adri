@@ -1,4 +1,5 @@
 "use client";
+import Dictee from "@/components/Dictee";
 import dynamic from "next/dynamic";
 import { libelleTypeZone } from "@/lib/sources/libelles";
 import type { Caracteristiques } from "@/lib/etat";
@@ -47,6 +48,7 @@ export default function Nature({ etat, setEtat, fiche, comps }: PropsOnglet) {
         <Champ label="Notes (visite, points d'attention)">
           <textarea value={c.notes} onChange={(e) => maj({ notes: e.target.value })} style={{ minHeight: 80 }} />
         </Champ>
+        <Dictee libelle="Dicter une note" surTexte={(x) => maj({ notes: `${c.notes ? `${c.notes} ` : ""}${x}` })} />
         {(c.dpe === "F" || c.dpe === "G") && <p className="alerte">DPE {c.dpe} : logement classé « passoire thermique », interdit à la location (G depuis 2025, F en 2028). Prévois la rénovation énergétique dans le budget travaux.</p>}
       </div>
 
