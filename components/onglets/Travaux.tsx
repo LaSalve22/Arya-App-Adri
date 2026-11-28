@@ -1,15 +1,16 @@
 "use client";
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import Dictee from "@/components/Dictee";
 import { appliquerCoutsTechniques, type CoutsTechniques, type EtatAnalyse } from "@/lib/etat";
 import { CATALOGUE, LIBELLES_GAMME, type Gamme } from "@/lib/travaux/catalogue";
 import { analyserDescription, type Compris } from "@/lib/travaux/dictee";
 import { demarchesDuBien, LIBELLES_INTERLOCUTEURS, type Interlocuteur } from "@/lib/travaux/demarches";
 import {
-  FORFAITS, LIBELLES_ETATS, LIBELLES_PIECES, appliquerReport, chiffrer, idPiece, piecesTypologie, proposerTravaux, reportDevis, reportForfait,
+  FORFAITS, LIBELLES_ETATS, LIBELLES_PIECES, appliquerReport, chiffrer, idPiece, montantLot, piecesTypologie, proposerTravaux, reportDevis, reportForfait, reportLots, travauxDesLots,
   type EtatPiece, type Forfait, type PlanTravaux, type TypePiece,
 } from "@/lib/travaux/plan";
-import type { NatureOperation, RegimeTVA } from "@/lib/bilan/types";
+import type { Lot, NatureLot, NatureOperation, RegimeTVA } from "@/lib/bilan/types";
+import { NATURES_LOT, estimerLot, natureParDefaut, parUnite } from "@/lib/dvfLots";
 import { eur, pct } from "@/lib/format";
 import { Champ, Num } from "./ui";
 import type { PropsOnglet } from "./types";
@@ -31,8 +32,13 @@ export function appliquerPlan(etat: EtatAnalyse, plan: PlanTravaux): EtatAnalyse
     for (const k of COUTS_DEVIS) c[k] = r.coutsTechniques[k] ?? 0;
     return { ...etat, travauxPlan: plan, coutsTechniques: c, hypotheses: appliquerCoutsTechniques(appliquerReport(h, r), c) };
   }
+  if (plan.mode === "lots") {
+    const r = reportLots(h.travaux, travauxDesLots(h.lots), plan.projet, surfaceBien);
+    return { ...etat, travauxPlan: plan, hypotheses: appliquerReport(h, r) };
+  }
   return { ...etat, travauxPlan: plan };
 }
+
 
 /** Intègre ce qui a été compris d'une description dictée ou collée. */
 export function fusionnerCompris(etat: EtatAnalyse, c: Compris): EtatAnalyse {
@@ -94,6 +100,27 @@ export default function Travaux({ etat, setEtat, a, fiche }: PropsOnglet) {
 
   const majPiece = (id: string, p: Partial<PlanTravaux["pieces"][number]>) => setPlan({ pieces: plan.pieces.map((x) => (x.id === id ? { ...x, ...p } : x)) });
 
+  // ----- Travaux par lot revendu
+  const natureDefaut = natureParDefaut(etat.caracteristiques.type);
+  const enLots = plan.mode === "lots";
+  const etatRef = useRef(etat);
+  etatRef.current = etat;
+  function majLot(i: number, p: Partial<Lot>, reestimer = false) {
+    const lots = h.lots.map((l, k) => (k === i ? { ...l, ...p } : l));
+    const e = { ...etat, hypotheses: { ...h, lots } };
+    setEtat(enLots ? appliquerPlan(e, plan) : e);
+    // Nature changée : le prix de revente DVF suit, comme dans le BP (sauf prix saisi à la main).
+    if (reestimer && !lots[i].prixManuel && fiche?.codeInsee) {
+      estimerLot(lots[i], { lon: fiche.lon, lat: fiche.lat, insee: fiche.codeInsee }, natureDefaut).then((r) => {
+        if (!r) return;
+        const cur = etatRef.current;
+        const nl = cur.hypotheses.lots.map((l, k) => (k === i ? { ...l, prixDown: r.prixBas, prixTop: r.prixHaut } : l));
+        setEtat({ ...cur, hypotheses: { ...cur.hypotheses, lots: nl } });
+      });
+    }
+  }
+  const totalLots = travauxDesLots(h.lots).reduce((s, l) => s + montantLot(l), 0);
+
   return (
     <div className="pile">
       {/* ---------------- DESCRIPTION ---------------- */}
@@ -138,6 +165,57 @@ export default function Travaux({ etat, setEtat, a, fiche }: PropsOnglet) {
           })}
         </div>
         {plan.mode === "forfait" && plan.forfait && <p className="petit doux">Forfait « {FORFAITS[plan.forfait].libelle} » reporté dans le bilan. Pour affiner, décris les pièces puis génère le devis détaillé.</p>}
+      </div>
+
+      {/* ---------------- TRAVAUX PAR LOT ---------------- */}
+      <div className="carte pile">
+        <div className="entete">
+          <h2>Travaux par lot</h2>
+          <div className="ligne">
+            <strong className="num">{eur(totalLots)}</strong>
+            <button type="button" className={`btn${enLots ? "" : " principal"}`} disabled={!totalLots} onClick={() => setPlan({ mode: "lots" }, true)}>{enLots ? "Reporté dans le bilan" : "Chiffrer par lot dans le bilan"}</button>
+          </div>
+        </div>
+        <div className="defile">
+          <table className="t">
+            <thead><tr><th>Lot</th><th>Nature</th><th className="n">Surface traitée</th><th>Travaux</th><th className="n">Montant TTC</th></tr></thead>
+            <tbody>
+              {h.lots.map((l, i) => {
+                const nature = l.nature ?? natureDefaut;
+                const choix = l.travauxForfait ?? (l.travauxMontant != null ? "libre" : "aucun");
+                const tl = travauxDesLots([l])[0];
+                return (
+                  <tr key={i}>
+                    <td>{l.libelle}</td>
+                    <td>
+                      <select value={nature} onChange={(e) => {
+                        const n = e.target.value as NatureLot;
+                        majLot(i, { nature: n, ...(parUnite(n) && l.travauxForfait ? { travauxForfait: null } : {}) }, true);
+                      }} aria-label={`Nature de ${l.libelle}`}>
+                        {NATURES_LOT.map(([k, lib]) => <option key={k} value={k}>{lib}</option>)}
+                      </select>
+                    </td>
+                    <td className="n"><Num v={l.travauxSurface ?? l.surface ?? undefined} pas={1} largeur={70} suffixe="m²" set={(n) => majLot(i, { travauxSurface: n || null })} /></td>
+                    <td>
+                      <select value={choix} onChange={(e) => {
+                        const v = e.target.value;
+                        if (v === "aucun") majLot(i, { travauxForfait: null, travauxMontant: null });
+                        else if (v === "libre") majLot(i, { travauxForfait: null, travauxMontant: l.travauxMontant ?? 0 });
+                        else majLot(i, { travauxForfait: v as Forfait, travauxMontant: null });
+                      }} aria-label={`Travaux de ${l.libelle}`}>
+                        <option value="aucun">Aucun</option>
+                        {(Object.keys(FORFAITS) as Forfait[]).map((f) => <option key={f} value={f}>{FORFAITS[f].libelle} · {FORFAITS[f].prixM2} €/m²</option>)}
+                        <option value="libre">Montant libre</option>
+                      </select>
+                    </td>
+                    <td className="n">{choix === "libre" ? <Num v={l.travauxMontant ?? 0} pas={500} set={(n) => majLot(i, { travauxMontant: n })} /> : eur(montantLot(tl))}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+        <p className="doux petit">Un forfait par lot selon sa nature : par exemple réhabilitation des appartements, rafraîchissement du local commercial, montant libre pour un garage. La nature se règle aussi dans le BP et sert au prix de revente DVF. Une fois « Chiffrer par lot » choisi, le total remplace le budget travaux du bilan et les % de requalification sont pondérés par la surface des lots.</p>
       </div>
 
       {/* ---------------- PIÈCES ---------------- */}

@@ -55,6 +55,11 @@ export interface Lot {
   nature?: NatureLot;
   /** Prix bas ou haut saisis à la main : l'estimation DVF automatique ne les remplace pas. */
   prixManuel?: boolean;
+  /** Travaux du lot (onglet Travaux, mode « par lot ») : forfait au m² ou montant libre TTC. */
+  travauxForfait?: "rafraichissement" | "global" | "rehabilitation" | null;
+  travauxMontant?: number | null;
+  /** Surface traitée pour les travaux, si différente de la surface vendue (garage, parking). */
+  travauxSurface?: number | null;
   surface?: number;
   prixDown: number | null;
   prixTop: number | null;

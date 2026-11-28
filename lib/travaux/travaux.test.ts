@@ -164,3 +164,21 @@ describe("analyse d'une description dictée", () => {
     expect(c.projet).toMatchObject({ assainissement: "collectif", copropriete: true });
   });
 });
+
+describe("travaux par lot", () => {
+  it("additionne forfaits et montants libres, % pondérés par la surface", async () => {
+    const { reportLots, travauxDesLots } = await import("./plan");
+    const lots = travauxDesLots([
+      { libelle: "A", nature: "Appartement", surface: 60, travauxForfait: "rehabilitation", prixDown: null, prixTop: null, tva: 0 },
+      { libelle: "B", nature: "Local", surface: 40, travauxForfait: "rafraichissement", prixDown: null, prixTop: null, tva: 0 },
+      { libelle: "G", nature: "Garage", travauxMontant: 3000, prixDown: null, prixTop: null, tva: 0 },
+    ]);
+    const r = reportLots(base(), lots, projetParDefaut(), 100);
+    expect(r.total).toBe(60 * 1200 + 40 * 450 + 3000);
+    const b = calculerBilan({ ...hypothesesParDefaut(), travaux: r.travaux });
+    expect(b.technique.grosEtSecondOeuvre.ttc).toBeCloseTo(r.total, -1);
+    // Électricité : 100 % sur 60 m² et 30 % sur 40 m² → 72 %
+    expect(r.travaux.secondOeuvre.electricite.pctRenove).toBeCloseTo(0.72, 6);
+    expect(basculeImmeubleNeuf(r.travaux).immeubleNeuf).toBe(false);
+  });
+});
